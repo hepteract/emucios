@@ -1,0 +1,45 @@
+#!/usr/bin/python2.7
+
+@clean_class
+class CleanFunction(object):
+    def __init__(self, function, default = None):
+        self.func = function
+        self.default = default
+
+    def __call__(self, name = None, *args, **kwargs):
+        if not name and self.default:
+            name = self.default
+        name = name.replace("..",".")
+
+        if not name.startswith("/"):
+            name = "/" + name
+
+        if name.startswith("/dev"):
+            pass
+        else:
+            name = "/usr/" + child + name
+
+        return self.func(name, *args, **kwargs)
+
+childdict = {}
+
+preserve = ("printf","input","xrange","len","next","type","enumerate","exit",
+            "ProcessInterrupt")
+for item in preserve:
+    childdict[item] = __dict__[item]
+
+childdict["__builtins__"] = __builtins__.copy()
+del childdict["__builtins__"]["__files__"]
+del childdict["__builtins__"]["__module__"]
+del childdict["__builtins__"]["SystemInterrupt"]
+
+childdict["__builtins__"]["open"] = childdict["__builtins__"]["file"] = CleanFunction(file)
+childdict["__builtins__"]["ls"] = CleanFunction(ls, '.')
+
+childprocess = create_process("/usr/" + child + "/bin/" + child, childdict)
+        
+def _main(*args, **kwargs):
+    childprocess.main = childprocess._main(*args, **kwargs)
+
+    while True:
+        yield next(childprocess.main)

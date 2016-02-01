@@ -1,0 +1,53 @@
+#!/usr/bin/python2.7
+"""Mythos library for Python 2.7
+
+Included by default in the PyOS namespace
+
+Mythos defines a number of decorators and such that extend the functionality of Python."""
+
+import functools
+import types
+
+class PrototypeContainer(object):
+    def __init__(self, args):
+        self.functions = {}
+        self.args = args
+
+    def __call__(self, *protoargs):        
+        def decorator(func):
+            if func.func_name in self.functions:
+                self.functions[func.func_name][protoargs] = func
+            else:
+                self.functions[func.func_name] = {protoargs : func}
+
+            if len(protoargs) != func.func_code.co_argcount:
+                raise TypeError, "Mismatching arguments in prototype"
+            
+            def function_prototype(*args, **kwargs):
+
+                prototype = tuple( [type(arg) for arg in args] )
+
+                functions = self.functions[func.func_name]
+
+                args = self.args + args
+
+                if prototype in functions:
+                    return functions[prototype](*args)
+                else:
+                    raise TypeError, "Arguments do not mach any known prototype"
+            functools.update_wrapper(function_prototype, func)
+            return function_prototype
+        
+        if type(protoargs[0]) in (types.FunctionType, types.MethodType):
+            func = protoargs[0]
+            protoargs = func.func_defaults
+            return decorator(func)
+        return decorator
+
+def inputoverride(override):
+    def decorator(func):
+        def wrapped(*args, **kwargs):
+            return func(*override(args), **kwargs)
+        functools.update_wrapper(wrapped, func)
+        return wrapped
+    return decorator

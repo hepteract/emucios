@@ -1,0 +1,60 @@
+#!/usr/bin/python2.7
+
+import passwd
+
+def _main(username = None, home = None, shell = None, password = None):
+    if username is None:
+        username = input("Username: ")
+    if password is None:
+        confirm = True
+        while password != confirm:
+            password = input("Password: ", echo = False)
+            confirm = input("Confirm password: ", echo = False)
+
+            if password != confirm:
+                printf("Passwords do not match.\n")
+    if shell is None:
+        shell = input("Shell: ")
+    if home is None:
+        home = "/home/" + username
+
+    __log__("Going for save")
+
+    try:
+        newuser = passwd.save(password, None, username, shell, home)
+    except Exception, e:
+        raise
+        exc = open("/dev/error").read()
+        printf(exc)
+        exit()
+    __log__(newuser)
+    
+    users = [user.split(":") for user in open("/etc/passwd").read().split("\n")]
+
+    __log__(users)
+
+    for user in users:
+        if user[passwd.NAME] == username:
+            printf("User '", username, "' already exists", sep = '')
+            yield
+            exit()
+
+    users.append(newuser)
+
+    users = [":".join(user) for user in users]
+
+    __log__(users)
+    __log__("\n".join(users))
+
+    userfile = open("/etc/passwd", "w")
+    userfile.write("\n".join(users))
+    userfile.flush()
+    userfile.close()
+
+    set_path("/home/" + username, Directory())
+
+    __log__("Should be done adding users")
+
+    users = [user.split(":") for user in open("/etc/passwd").read().split("\n")]
+
+    __log__(users)

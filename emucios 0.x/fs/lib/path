@@ -1,0 +1,23 @@
+#!/usr/bin/python2.7
+
+def join(*_args):
+    args = []
+    for arg in _args:
+        if arg.startswith('/'):
+            args = [arg]
+        else:
+            args.append(arg)
+    path = "/".join(args).replace("//","/")
+
+    _parts = path.split("/")
+    parts = [""]
+
+    for part in _parts:
+        if part == "..":
+            parts.pop()
+        elif part == ".":
+            pass
+        else:
+            parts.append(part)
+    
+    return "/".join(parts).replace("//","/").replace("//","/")

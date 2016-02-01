@@ -1,0 +1,35 @@
+#!/usr/bin/python2.7
+
+fabs = abs
+
+superpass = lambda *args, **kwargs: None
+
+ceil = superpass
+
+floor = superpass
+
+modf = superpass
+
+ldexp = superpass
+
+def copysign(x, y):
+    "Return x with the sign of y."
+    return x * (y/fabs(y))
+
+isinf = superpass
+
+isnan = superpass
+
+frexp = superpass
+
+def factorial(x):
+    "Return x factorial."
+    if type(x) != int or x < 0:
+        raise ValueError, "factorial() only accepts positive integers"
+    if x > 1:
+        return x * factorial(x - 1)
+    return 1
+
+def fmod(x, y): # Change me
+    "Return x mod y. May not match host system fmod()."
+    return x % y

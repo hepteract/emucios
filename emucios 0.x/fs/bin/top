@@ -1,0 +1,7 @@
+#!/usr/bin/python2.7
+
+def _main():
+    for i, process in enumerate(processes, 0):
+        if process is not None:
+            printf(i, ": ", process.__name__, sep = "")
+    yield

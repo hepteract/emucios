@@ -1,0 +1,12 @@
+#!/usr/bin/python2.7
+
+def _main(prompt = "> "):
+    while True:
+        try:
+            exec compile(input(prompt), "<string>", "single")
+        except ProcessInterrupt:
+            break
+        except:
+            exc = file("/dev/error").read()
+            printf(exc[0].__name__ + ":", exc[1], file="stderr")
+        yield

@@ -1,0 +1,5 @@
+#!/usr/bin/python2.7
+
+def _main(num):
+    processes.pop(int(num))
+    yield

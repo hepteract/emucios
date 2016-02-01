@@ -1,0 +1,7 @@
+#!/usr/bin/python2.7
+
+def _main(filename):
+    f = open(filename, "rw")
+    prompt = "".join(("\033[30;47mEditing: ", filename, "\n\033[0m\n"))
+    f.write(multiline_input(prompt, start = f.read()))
+    yield

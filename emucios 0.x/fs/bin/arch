@@ -1,0 +1,8 @@
+#!/usr/bin/python2.7
+
+def _main():
+    if CIOS_MAGIC[0].endswith("emucios"):
+        printf("Running in unknown emulated environment")
+    else:
+        printf("Running on ", CIOS_MAGIC[0])
+    yield

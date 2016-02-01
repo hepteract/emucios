@@ -1,0 +1,5 @@
+#!/usr/bin/python2.7
+
+stdout = file("/dev/stdout", "w")
+stderr = file("/dev/stderr", "w")
+stdin = file("/dev/stdin")

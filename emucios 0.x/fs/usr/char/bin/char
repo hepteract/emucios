@@ -1,0 +1,10 @@
+#!/usr/bin/python2.7
+
+def _main():
+    while True:
+        out = input("> ", False, 5, True)
+        printf(out)
+        for char in out:
+            printf(ord(char), end = " ")
+        printf()
+        yield

@@ -1,0 +1,65 @@
+#!/usr/bin/python2.7
+
+import passwd
+
+def start(name, user, home):
+    global main
+    temp = child_wrapper(name, main, user, home)
+    if next(temp) == 0:
+        main = temp
+        __log__(name)
+    else:
+        return -1
+
+def child_wrapper(name, main, user, home):
+    child = create_process(name, __dict__)
+    if child == -1:
+        yield -1
+    else:
+        child.CUR_DIR = CUR_DIR
+        yield 0
+    try:
+        child.main = child._main()
+        child.CUR_USER = user
+        child.HOME = home
+    except:
+        exc = file("/dev/error").read()
+        error = str(exc[1]).replace('_main()', name)
+        printf(__name__, "(sh):", exc[0].__name__ + ":", error, file="stderr")
+        #child.main = child._main()
+        child.main = main
+
+        
+    while True:
+        try:
+            out = next(child.main)
+        except StopIteration:
+            #printf("sh (", name, "): Process ended", sep = '')
+            child.main = main
+            out = next(main)
+        yield out
+
+def _main():
+    passfile = open("/etc/passwd").read()
+    users = [user.split(':') for user in passfile.split("\n")]
+
+    while True:
+        username = input("Login: ")
+        password = input("Password: ", echo = False)
+        
+        for user in users:
+            if user[passwd.NAME] == username:
+                if passwd.test(password, user):
+                    printf("\nWelcome,", username, '\n', color = terminal.BLUE, attr = terminal.BRIGHT)
+           
+                    try:
+                        start(user[passwd.SHELL], username, user[passwd.HOME])
+                        yield
+                        printf("An unknown error has occurred.")
+                        while True:
+                            exec compile(input("> "), "<debug>", "single")
+                    except:
+                        printf("Failed to launch user shell", user[passwd.SHELL],\
+                               file = "stderr")
+                        raise
+        printf("Incorrect username or password\n")

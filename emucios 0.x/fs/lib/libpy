@@ -1,0 +1,104 @@
+#!/usr/bin/python2.7
+
+@clean_function
+def startrange(start, stop, step = 1):
+    i = start
+    while i < stop:
+        yield i
+        i += step
+        
+@clean_function
+def stoprange(stop, step = 1):
+    i = 0
+    while i < stop:
+        yield i
+        i += step
+
+def xrange(*args, **kwargs):
+    if len(args) > 1 or 'start' in kwargs:
+        return startrange(*args, **kwargs)
+    else:
+        return stoprange(*args, **kwargs)
+
+@clean_function
+def len(item):
+    return item.__len__()
+
+@clean_function
+def next(iter):
+    return iter.next()
+
+@clean_function
+def hasattr(obj, name):
+    try:
+        return (name in obj.__dict__)
+    except:
+        return False
+
+@clean_function
+def abs(number):
+    if number < 0:
+        return 0 - number
+    else:
+        return number
+
+@clean_function
+def super(cls):
+    return cls.__bases__[0]
+
+@clean_function
+def type(obj):
+    return obj.__class__
+
+@clean_function
+def superpass(*args, **kwargs):
+    pass
+
+@clean_function
+def enumerate(iter, start):
+    i = start
+    for item in iter:
+        yield i, item
+        i += 1
+
+def quit():
+    raise SystemInterrupt
+
+class ProcessInterrupt(Exception): pass
+
+def exit():
+    raise ProcessInterrupt
+
+@clean_function
+def max(iterable):
+    maximum = iterable[0]
+    for item in iterable[1:]:
+        if item > maximum:
+            maximum = item
+    return maximum
+
+@clean_function
+def min(iterable):
+    minimum = iterable[0]
+    for item in iterable[1:]:
+        if item < minimum:
+            minimum = item
+    return minimum    
+
+def time():
+    return open("/dev/clock").read()
+
+@clean_function
+def ls(path = "."):
+    return get_path(path).listdir()
+
+class staticmethod(object):
+    def __init__(self, function):
+        self.f = function
+
+    def __get__(self, obj, objtype = None):
+        return self.f
+
+bytes = str
+
+#include("stdio")

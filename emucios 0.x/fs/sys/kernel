@@ -1,0 +1,162 @@
+#!/usr/bin/python2.7
+
+__modules__ = {}
+
+def _identity_import(module, name):
+    return module
+
+def do_import(_name, local = True, include = False, reuse = True, dict = None):
+    name = _name.split(".")[0]
+    
+    if reuse and name in __modules__:
+        return __modules__[name]
+    
+    if name.startswith("/"):
+        codefile = open(name)
+    else:
+        codefile = open("/lib/" + name)
+    code = codefile.read()
+    del codefile
+
+    module = __module__(name)
+    module.__name__ = name
+    module.__file__ = name
+    module.__dict__["__builtins__"] = __builtins__
+    module.__dict__["__imp__"] = _identity_import
+
+    if dict:
+        module.__dict__.update(dict)
+    
+    if local:
+        module_dict = __dict__.copy()
+        module_dict["__dict__"] = module.__dict__
+        module.__dict__.update(module_dict)
+
+    obj = compile(code, name, "exec")
+    
+    exec obj in module.__dict__
+
+    if include:
+        if dict:
+            dict.update(module.__dict__)
+        else:
+            for name, value in module.__dict__.items():
+                __dict__[name] = value
+
+    for name in name.split(".")[1:]:
+        module = getattr(module, name)
+
+    module = module.__imp__(module, name)
+
+    __modules__[name] = module
+
+    return module
+
+def __import__(name, *args, **kwargs):
+    return do_import(name, True)
+__builtins__["__import__"] = __import__
+
+def include(name):
+    return do_import(name, include = True)
+
+@force_clean_function
+def get_path(path, bytes = 0):
+    tree = path.split("/")
+    branch = __files__
+
+    for leaf in tree[:-1]:
+        try:
+            branch = branch[leaf]
+        except:
+            raise Exception, str(leaf) + str(branch)
+    branch = branch[ tree[-1] ]
+    out = branch.next()
+
+    if out.__class__ is str:
+        if bytes == 0:
+            last = out
+            while last != "":
+                last = branch.next()
+                out += last
+        else:
+            try:
+                for i in xrange(bytes - 1):
+                    __log__(i)
+                    out += branch.next()
+            except NameError:
+                for i in lib.xrange(bytes - 1):
+                    __log__(i)
+                    out += branch.next()
+        
+    return out
+
+@clean_function
+def set_path(path, val):
+    tree = path.split("/")
+    branch = __files__
+
+    for leaf in tree[:-1]:
+        branch = branch[leaf].next()
+
+    if val.__class__ is Directory:
+        branch[ tree[-1] ] = val
+    elif val is None:
+        branch.rm(tree[-1])
+    else:
+        branch[ tree[-1] ] = None
+        for char in val:
+            branch[ tree[-1] ] = char
+
+@clean_class
+class file(object):
+    def __init__(self, path, mode = "r"):
+        self.path = path
+        self.mode = mode
+
+        if self.mode == "a":
+            self.text = get_path(self.path)
+        else:
+            self.text = ""
+
+        assert mode in "rwa", "Mode must be read, write, or append"
+
+    def read(self, bytes = 0):
+        return get_path(self.path, bytes)
+
+    def write(self, text):
+        self.text += text
+
+    def flush(self):
+        if self.mode != "r":
+            set_path(self.path, self.text)
+
+    def __del__(self):
+        self.flush()
+
+    def close(self):
+        del self
+open = file
+
+lib = include("libpy")
+io = include("stdio")
+
+def interact(prompt = ">>> "):
+    while True:
+        try:
+            exec io.input(prompt)
+        except SystemInterrupt:
+            break
+        except lib.ProcessInterrupt:
+            break
+        except:
+            exc = file("/dev/error").read()
+            lib.printf("kernel (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
+            raise
+
+def bootstrap():
+    userland = do_import("/sys/userland", local = True)
+    #userland.fallback = interact
+    userland.bootstrap()
+
+bootstrap()
+#interact()

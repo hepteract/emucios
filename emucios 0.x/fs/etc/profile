@@ -1,0 +1,15 @@
+# Aliases
+define pwd printf(CUR_DIR)
+define whoami printf(CUR_USER)
+
+define su global CUR_USER\
+if len(args) > 0:\
+	CUR_USER = args[0]\
+else:\
+	CUR_USER = "root"
+
+define logout exit()
+define shutdown quit()
+define exit quit()
+
+define time cat("/dev/clock")

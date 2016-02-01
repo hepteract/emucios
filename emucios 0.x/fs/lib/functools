@@ -1,0 +1,8 @@
+#!/usr/bin/python2.7
+
+def update_wrapper(new, orig):
+    try:
+        new.__name__ = orig.__name__
+        new.func_name = orig.func_name
+    except:
+        pass

@@ -1,0 +1,29 @@
+#!/usr/bin/python2.7
+
+def start(name, *args, **kwargs):
+    global main
+    main = child_wrapper(name, main, *args, **kwargs)
+
+def child_wrapper(name, main, *args, **kwargs):
+    child = create_process(name, __dict__)
+    child.main = child._main(*args, **kwargs)
+    while True:
+        try:
+            out = next(child.main)
+        except StopIteration:
+            out = next(main)
+        yield out
+
+def _main(prompt = ">>> "):
+    while True:
+        try:
+            exec compile(input(prompt), "<string>", "single")
+        except SystemInterrupt:
+            raise
+        except ProcessInterrupt:
+            break
+        except:
+            exc = file("/dev/error").read()
+            printf("python (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
+            #raise
+        yield

@@ -1,0 +1,157 @@
+#!/usr/bin/python2.7
+
+import mythos
+import path
+
+class ProcessError(Exception): pass
+
+DEBUG = False
+
+@clean_function
+def create_process(name, dict):
+    if name.startswith("/"):
+        codefile = open(name)
+    elif name in __files__["bin"].listdir():
+        codefile = open("/bin/" + name)
+    elif name in __files__["usr"].listdir():
+        return create_activity(name, dict)
+    else:
+        raise ProcessError, "No such program or application " + name
+            
+    code = codefile.read()
+    codefile.close()
+
+    module = __module__(name)
+    module.__file__ = name + ".pye"
+    
+    dict = dict.copy()
+    dict["__dict__"] = module.__dict__
+    
+    module.__dict__.update(dict)
+    module.__name__ = name
+
+    module.prototype = mythos.PrototypeContainer(())
+    module.CUR_DIR = "/"
+    module.CUR_USER = "root"
+
+    def relative_override(args):
+        args = list(args)
+        args[0] = path.join(module.__dict__["CUR_DIR"], args[0])
+        return args
+    
+    relative = mythos.inputoverride(relative_override)
+    module.__builtins__["open"] = module.__dict__["open"] = mod = relative(open)
+    module.__builtins__["get_path"] = module.__dict__["get_path"] = relative(get_path)
+    module.__builtins__["set_path"] = module.__dict__["set_path"] = relative(set_path)
+    module.__builtins__["ls"] = module.__dict__["ls"] = relative(ls)
+
+    obj = compile(code, name, "exec")
+    exec obj in module.__dict__
+
+    return module
+
+def create_activity(name, dict):
+    dict["child"] = name
+    return create_process("activity", dict)
+
+processes = []
+
+@clean_function
+def spawn(name, dict = None, args = [], kwargs = {}):
+    if dict is None:
+        dict = __dict__
+    try:
+        process = create_process(name, dict)
+    except:
+        #process = create_activity(name, dict)
+        #return -1
+        raise
+        
+    if None in processes:
+        index = processes.index(None)
+        processes[index] = process
+    else:
+        index = -1
+        processes.append( process )
+    try:
+        processes[index].main = processes[index]._main(*args, **kwargs)
+    except TypeError:
+        exc = file("/dev/error").read()
+        error = str(exc[1]).replace('_main()', name)
+        printf("userland (" + __name__ + "):", exc[0].__name__ + ":", error + '. Relaunching without arguments', file="stderr")
+        processes[index].main = processes[index]._main()
+
+    if index == -1:
+        return len(processes) - 1
+    else:
+        return index
+
+def alive():
+    for process in processes:
+        if process is not None:
+            return True
+    return False
+
+@clean_function
+def run_all():
+    for i, process in enumerate(processes, 0):
+        if process is not None:
+            try:
+                ret = process.main.next()
+            except StopIteration:
+                processes[i] = None
+                del process
+            except ProcessInterrupt:
+                processes[i] = None
+                del process
+
+def fallback():
+    pass
+
+def bootstrap():
+    global DEBUG
+    printf("Bootstrapping...")
+    
+    shellfile = open("/etc/shell").read()
+    shell = shellfile.split("\n")[0]
+
+    if len(CIOS_MAGIC) > 1:
+        if CIOS_MAGIC[1] == "debug":
+            DEBUG = True
+        else:
+            shell = CIOS_MAGIC[1]
+
+    spawn(shell, __dict__)
+
+    interrupt = None
+
+    while True:
+
+        while alive():
+            try:
+                run_all()
+            except SystemInterrupt:
+                interrupt = SystemInterrupt
+            except KeyboardInterrupt:
+                pass
+            except:
+                exc = file("/dev/error").read()
+                printf("userland (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
+                if DEBUG:
+                    raise
+
+        if interrupt is SystemInterrupt:
+            break
+        printf("userland (" + __name__ + "): Last process closed", file="stdout")
+        relaunch = input("Relaunch shell? (y/N) ")
+        if not relaunch:
+            break
+        elif relaunch.lower()[0] == 'y':
+            shellfile = open("/etc/shell").read()
+            shell = shellfile.split("\n")[0]
+            
+            spawn(shell, __dict__)
+        else:
+            break
+
+    fallback()

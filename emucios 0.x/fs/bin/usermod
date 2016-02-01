@@ -1,0 +1,32 @@
+#!/usr/bin/python2.7
+
+import passwd
+
+__log__("HELLO")
+
+def _main(username, key, value):
+    users = [user.split(":") for user in open("/etc/passwd").read().split("\n")]
+
+    for index, user in enumerate(users, 0):
+        if user[passwd.NAME] == username:
+            if key in ('home', 'h', '~'):
+                user[passwd.HOME] = value
+            elif key in ('sh', 'shell', 's'):
+                user[passwd.SHELL] = value
+            elif key in ('passwd', 'pass', 'p'):
+                if value == '-':
+                    value = input("Password: ", echo = False)
+                user = passwd.save(value, user)
+
+            users[index] = user
+
+    __log__("Going for save")
+
+    users = [":".join(user) for user in users]
+    
+    __log__("\n".join(users))
+
+    userfile = open("/etc/passwd", "w")
+    userfile.write("\n".join(users))
+    userfile.flush()
+    userfile.close()

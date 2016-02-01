@@ -1,0 +1,215 @@
+#!/usr/bin/python2.7
+
+import path
+
+SOFT_RELATIVE = False
+
+CUR_USER = "root"
+
+def start(name, *args, **kwargs):
+    global main
+    temp = child_wrapper(name, main, *args, **kwargs)
+    if next(temp) == 0:
+        main = temp
+        __log__(name)
+    else:
+        return -1
+
+def child_wrapper(name, main, *args, **kwargs):
+    child = create_process(name, __dict__)
+    if child == -1:
+        yield -1
+    else:
+        child.CUR_DIR = CUR_DIR
+        yield 0
+    try:
+        child.main = child._main(*args, **kwargs)
+    except:
+        exc = file("/dev/error").read()
+        error = str(exc[1]).replace('_main()', name)
+        printf(__name__, "(sh):", exc[0].__name__ + ":", error, file="stderr")
+        #child.main = child._main()
+        child.main = main
+
+        
+    while True:
+        try:
+            out = next(child.main)
+        except StopIteration:
+            #printf("sh (", name, "): Process ended", sep = '')
+            child.main = main
+            out = next(main)
+        yield out
+
+if SOFT_RELATIVE:
+    def relative(func):
+        def relative_cmd(loc = '.'):
+            loc = loc.replace('~', HOME)
+            loc = path.join(CUR_DIR, loc)
+            return func(path.join(loc))
+        return relative_cmd
+else:
+    def relative(func):
+        return func
+
+def echo_dir(loc):
+    printf(loc)
+
+true_ls = ls
+
+@relative
+def do_ls(loc = '.'):
+    ret = true_ls(loc)
+    for item in ret:
+        printf(item)
+    return ret
+ls = do_ls
+
+def do_cd(loc = None):
+    global CUR_DIR
+    
+    if not loc:
+        printf(CUR_DIR)
+        return
+
+    __log__(CUR_DIR)
+
+    _CUR_DIR = path.join(CUR_DIR, loc.replace("~", HOME))
+
+    __log__(_CUR_DIR)
+    
+    try:
+        _path = get_path(_CUR_DIR)
+        if _path == -1:
+            printf('cd (' + __name__ + '): No such file or directory:', _CUR_DIR, file = "stderr")
+        elif hasattr(_path, 'path'):
+            CUR_DIR = _CUR_DIR
+        else:
+            printf('cd (' + __name__ + '):', _CUR_DIR, 'is not a directory', file = "stderr")
+    except Exception, e:
+        printf(e)
+        return -2
+cd = do_cd
+
+def do_cp(loc0, loc1):
+    f = open(loc0)
+    if f == -1:
+        raise IOError, loc0 + " does not exist or is not a file"
+    set_path(loc1, f.read())
+cp = do_cp
+
+@relative
+def do_cat(*locs):
+    x = ""
+    for loc in locs:
+        f = open(loc)
+
+        if f == -1:
+            raise IOError, loc + " does not exist or is not a file"
+
+        x += str(f.read())
+
+    printf(x)
+    return x
+    
+cat = do_cat
+
+@relative
+def do_mkdir(loc):
+    return set_path(loc, Directory())
+mkdir = do_mkdir
+
+@relative
+def do_rm(loc):
+    set_path(loc, None)
+rm = do_rm
+
+def do_mv(loc0, loc1):
+    do_cp(loc0, loc1)
+    do_rm(loc0)
+mv = do_mv
+
+def do_define(name, *code):
+    local = {}
+    exec "".join(("def custom_cmd(*args): exec '''", " ".join(code), "'''"))\
+         in __dict__, local
+    commands[name] = local["custom_cmd"]
+
+@relative
+def do_source(filename):
+    f = open(filename)
+    for line in [part.replace("\0", "\n") for part in \
+                 f.read().replace("\\\n", "\0").split("\n")]:
+        eval_command(line)
+source = do_source
+
+commands = {"exit" : exit,
+            "printf" : printf,
+            "echo" : printf,
+            "shutdown" : quit,
+            "quit" : quit,
+            "cd" : do_cd,
+            "ls" : do_ls,
+            "" : superpass,
+            "cls" : terminal.clear,
+            "clear" : terminal.clear,
+            "cat" : do_cat,
+            "mkdir" : do_mkdir,
+            "rm" : do_rm,
+            "cp" : do_cp,
+            "mv" : do_mv,
+            "spawn" : spawn,
+            "start" : spawn,
+            "define" : do_define,
+            "source" : do_source
+            }
+
+HOME = "/root"
+
+def eval_command(cmd):
+    cmd = cmd.split(" ")
+    if cmd[0] in commands:
+        #commands[ cmd[0] ].path = path
+        ret = commands[ cmd[0] ](*cmd[1:])
+
+        if ret is None:
+            pass
+        elif ret < 0:
+            printf(cmd[0], " (" + cmd[0] + "): failed with error code", 0 - ret, file="stderr")
+    else:
+        try:
+            start(cmd[0], *cmd[1:])
+        except ProcessError:
+            exec " ".join(cmd)
+
+def _main(prompt = None):
+    history = [[]]
+
+    global CUR_DIR
+    CUR_DIR = HOME if HOME != "/root" else "/"
+
+    if prompt is None:
+        if CUR_USER == "root":
+            prompt = "%D # "
+        else:
+            prompt = CUR_USER + " %D $ "
+
+    source("/etc/profile")
+    yield
+
+    while True:
+        cmd = input(prompt.replace("%D",CUR_DIR.replace(HOME, "~")), history = history)
+        tmp = list(cmd)
+        if history[0] != tmp:
+            history.insert(0, tmp)
+
+        try:
+            eval_command(cmd)
+        except ProcessInterrupt:
+            break
+        except SystemInterrupt:
+            raise
+        except:
+            exc = file("/dev/error").read()
+            printf("sh (sh):", exc[0].__name__ + ":", exc[1], file="stderr")
+        yield

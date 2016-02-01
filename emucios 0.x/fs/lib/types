@@ -1,0 +1,10 @@
+#!/usr/bin/python2.7
+
+def test(): pass
+FunctionType = type(test)
+
+CodeType = type( compile("pass", "dummy", "exec") )
+
+class Test(object):
+    def test(): pass
+MethodType = Test.test

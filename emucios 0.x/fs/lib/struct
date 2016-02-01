@@ -1,0 +1,20 @@
+#!/usr/bin/python2.7
+
+def unpack_int(size, data, le = 'big'):
+    bytes = [ord(char) for char in data[:size]]
+    if le == 'little':
+        bytes.reverse()
+    number = 0
+    for b in bytes:
+        number = number << 8 | b
+    return int(number)
+
+def pack_int(size, number, le = 'big'):
+    x=number
+    res=[]
+    for i in xrange(size):
+        res.append(x&0xff)
+        x >>= 8
+    if le == 'big':
+        res.reverse()
+    return ''.join([chr(char) for char in res])
