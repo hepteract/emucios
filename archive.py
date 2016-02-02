@@ -6,20 +6,27 @@ import types
 import os
 
 class FileSystem(object):
-    def __init__(self, shelf, autosync = True):
+    def __init__(self, shelf, autosync = True, magic = None):
         self.shelf = shelf
         self.auto = autosync
+        self.magic = magic if magic is not None else {}
 
     def __getitem__(self, name):
-        if name == "":
+        if name in self.magic:
+            return self.magic[name][0] ()
+        
+        elif name == "":
             return self
         else:
             return self.shelf[name]
 
     def __setitem__(self, name, value):
-        self.shelf[name] = value
-        if self.auto:
-            self.flush()
+        if name in self.magic:
+            self.magic[name][1] (value)
+        else:
+            self.shelf[name] = value
+            if self.auto:
+                self.flush()
 
     def __delitem__(self, name):
         del self.shelf[name]
@@ -83,8 +90,8 @@ def _extract(archive):
             with open(key, "w") as f:
                 f.write(item)
         else:
-            with open(key, "wb") as f:
-                f.write( pickle.dumps(item) )
+            with open(key, "w") as f:
+                f.write( str(item) )
 
     os.chdir(orig)
 
