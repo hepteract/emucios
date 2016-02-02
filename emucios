@@ -171,24 +171,11 @@ def _main(f = None, data = None, arguments = None, handled = False):
     else:
         arguments.insert(0, 'illegal')
         
-<<<<<<< HEAD
     if "sys" in fs.keys():
         if "kernel" in fs["sys"]:
             code = fs["sys"]["kernel"]
 
     arguments[0] = "cios2"
-=======
-    if os.path.exists('sys/kernel'):
-        with open('sys/kernel') as f:
-            code = f.read()
-    elif os.path.exists('../livecd/kernel'):
-        with open('../livecd/kernel') as f:
-            code = f.read()
-    else:
-        code = "raise OSError, 'No bootable medium detected'"
-
-    arguments[0] = "cios"
->>>>>>> master
     code = 'CIOS_MAGIC = ' + repr(arguments) + '\n' + code
     obj = compile(code, 'kernel', 'exec')
     exec obj in scope
