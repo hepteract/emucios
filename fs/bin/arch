@@ -1,8 +1,19 @@
 #!/usr/bin/python2.7
 
+import sys
+
 def _main():
-    if CIOS_MAGIC[0].endswith("emucios"):
-        printf("Running in unknown emulated environment")
+    ver = CIOS_MAGIC[0]
+    if ver == "cios":
+        printf("Running on CIOS (legacy)")
+    elif ver == "cios2":
+        printf("Running on CIOS version 2")
+    elif ver == "aios":
+        printf("Running on AIOS in virtual mode")
+    elif ver == "illegal":
+        printf("Error: your CIOS chip is corrupt.", file = sys.stderr)
+        printf("Your computer will be shut down to save data.", file = sys.stderr)
+        quit()
     else:
-        printf("Running on ", CIOS_MAGIC[0])
+        printf("Running on unknown hardware:", ver)
     yield
