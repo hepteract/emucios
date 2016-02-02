@@ -59,75 +59,172 @@ __builtins__["__import__"] = __import__
 def include(name):
     return do_import(name, include = True)
 
-@force_clean_function
-def get_path(path, bytes = None):
-    __files__["readcount"] = bytes
-    if path.startswith("/dev"):
-        path = path[4:]
-    return __files__.get_path(path)
+if CIOS_MAGIC[0] == "cios2":
+    @force_clean_function
+    def get_path(path, bytes = None):
+        __files__["readcount"] = bytes
+        if path.startswith("/dev"):
+            path = path[4:]
+        return __files__.get_path(path)
 
-def set_path(path, val):
-    if path.startswith("/dev"):
-        path = path[4:]
-    __files__.set_path(path, val)
+    def set_path(path, val):
+        if path.startswith("/dev"):
+            path = path[4:]
+        __files__.set_path(path, val)
 
-class file(object):
-    def __init__(self, path, mode = "r"):
-        self.path = path
-        self.mode = mode
+    class file(object):
+        def __init__(self, path, mode = "r"):
+            self.path = path
+            self.mode = mode
 
-        if self.mode == "a":
-            self.text = get_path(self.path)
+            if self.mode == "a":
+                self.text = get_path(self.path)
+            else:
+                self.text = ""
+
+            assert mode in "rwa", "Mode must be read, write, or append"
+
+        def read(self, bytes = 0):
+            return get_path(self.path, bytes)
+
+        def write(self, text):
+            self.text += text
+
+        def flush(self):
+            if "w" in self.mode or "a" in self.mode:
+                set_path(self.path, self.text)
+
+        def __del__(self):
+            self.flush()
+
+        def close(self):
+            del self
+    open = file
+
+elif CIOS_MAGIC[0] == "cios":
+    @force_clean_function
+    def get_path(path, bytes = 0):
+        tree = path.split("/")
+        branch = __files__
+
+        for leaf in tree[:-1]:
+            try:
+                branch = branch[leaf]
+            except:
+                raise Exception, str(leaf) + str(branch)
+        branch = branch[ tree[-1] ]
+        out = branch.next()
+
+        if out.__class__ is str:
+            if bytes == 0:
+                last = out
+                while last != "":
+                    last = branch.next()
+                    out += last
+            else:
+                try:
+                    for i in xrange(bytes - 1):
+                        __log__(i)
+                        out += branch.next()
+                except NameError:
+                    for i in lib.xrange(bytes - 1):
+                        __log__(i)
+                        out += branch.next()
+            
+        return out
+
+    @clean_function
+    def set_path(path, val):
+        tree = path.split("/")
+        branch = __files__
+
+        for leaf in tree[:-1]:
+            branch = branch[leaf].next()
+
+        if val.__class__ is Directory:
+            branch[ tree[-1] ] = val
+        elif val is None:
+            branch.rm(tree[-1])
         else:
-            self.text = ""
+            branch[ tree[-1] ] = None
+            for char in val:
+                branch[ tree[-1] ] = char
 
-        assert mode in "rwa", "Mode must be read, write, or append"
+    @clean_class
+    class file(object):
+        def __init__(self, path, mode = "r"):
+            self.path = path
+            self.mode = mode
 
-    def read(self, bytes = 0):
-        return get_path(self.path, bytes)
+            if self.mode == "a":
+                self.text = get_path(self.path)
+            else:
+                self.text = ""
 
-    def write(self, text):
-        self.text += text
+            assert mode in "rwa", "Mode must be read, write, or append"
 
-    def flush(self):
-        if "w" in self.mode or "a" in self.mode:
-            set_path(self.path, self.text)
+        def read(self, bytes = 0):
+            return get_path(self.path, bytes)
 
-    def __del__(self):
-        self.flush()
+        def write(self, text):
+            self.text += text
 
-    def close(self):
-        del self
-open = file
+        def flush(self):
+            if self.mode != "r":
+                set_path(self.path, self.text)
+
+        def __del__(self):
+            self.flush()
+
+        def close(self):
+            del self
+    open = file
+    
+else:
+    raise OSError, "Current CIOS chip not supported"
 
 lib = include("libpy")
 io = include("stdio")
 
-def fallback():
-    while True:
-        try:
-            __files__["stdout"] = ">>> "
-            input = ""
-            while not input.endswith("\n"):
-                __files__["sleep"] = 0.01
-                while __files__["_stdin"]:
-                    char = __files__["stdin"]
-                    if char == '\x7f':
-                        if input != "":
-                            __files__["stdout"] = "\x1b[D \x1b[D"
-                            input = input[:-1]
-                    else:
-                        __files__["stdout"] = char
-                        input += char
-            exec input[:-1]
-        except:
-            exc = __files__["error"]
-            if exc[0] in (KeyboardInterrupt, SystemInterrupt):
-                raise SystemInterrupt
-            __files__["stderr"] = exc[0].__name__
-            __files__["stderr"] = ": "
-            __files__["stderr"] = exc[1]
-            __files__["stderr"] = "\n"
+if CIOS_MAGIC[0] == "cios2": 
+    def fallback():
+        while True:
+            try:
+                __files__["stdout"] = ">>> "
+                input = ""
+                while not input.endswith("\n"):
+                    __files__["sleep"] = 0.01
+                    while __files__["_stdin"]:
+                        char = __files__["stdin"]
+                        if char == '\x7f':
+                            if input != "":
+                                __files__["stdout"] = "\x1b[D \x1b[D"
+                                input = input[:-1]
+                        else:
+                            __files__["stdout"] = char
+                            input += char
+                exec input[:-1]
+            except:
+                exc = __files__["error"]
+                if exc[0] in (KeyboardInterrupt, SystemInterrupt):
+                    raise SystemInterrupt
+                __files__["stderr"] = exc[0].__name__
+                __files__["stderr"] = ": "
+                __files__["stderr"] = exc[1]
+                __files__["stderr"] = "\n"
+else:
+    def fallback(prompt = ">>> "):
+        while True:
+            try:
+                exec io.input(prompt)
+            except SystemInterrupt:
+                break
+            except lib.ProcessInterrupt:
+                break
+            except:
+                exc = file("/dev/error").read()
+                lib.printf("kernel (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
+                raise
 
 def bootstrap():
     userland = do_import("/sys/userland", local = True)

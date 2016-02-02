@@ -1,236 +1,470 @@
 #!/usr/bin/python2.7
+if CIOS_MAGIC[0] == "cios2":
+    include("libpy")
 
-include("libpy")
+    @clean_function
+    def printf(*args, **kwargs):
+        if kwargs.get("file","stdout") == "stderr" and "color" not in kwargs:
+            kwargs["color"] = terminal.RED
 
-@clean_function
-def printf(*args, **kwargs):
-    if kwargs.get("file","stdout") == "stderr" and "color" not in kwargs:
-        kwargs["color"] = terminal.RED
-
-    if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
-        terminal.setup( kwargs.get("color"), kwargs.get("back"), kwargs.get("attr") )
-        
-    parts = []
-    for arg in args:
-        parts.append( str(arg) )
-    out = kwargs.get("sep"," ").join(parts) + kwargs.get("end","\n")
-
-    set_path("/dev/" + kwargs.get("file","stdout"), out)
-
-    if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
-        terminal.reset()
-#print = printf
-
-escseq = {'up' : '\x1b[A', 'down' : '\x1b[B', 'right' : '\x1b[C', 'left' : '\x1b[D',
-          'delete' : '\x1b[3~'}
-
-@clean_function
-def input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\n\x18\x04', history = ()):
-    printf(prompt, end = "")
-    char += 1
-
-    out = []
-    last = "x"
-    escape = ""
-
-    history = tuple(history) + (out,)
-
-    assert '\n' in endchar, 'input() only supports single-line input'
-
-    cursor = 0
-    hist = -1
-    while char > 0:
-        last = get_path("/dev/stdin")
-        if last in endchar and last:
-            printf()
-            if raw:
-                return out
-            else:
-                __log__(out)
-                return ''.join(out)
-        elif last == "\x7f":
-            if cursor > 0:
-                if out != [] and echo:
-                    out.pop(cursor - 1)
-                    cursor -= 1
-                    terminal.cursor.move(-1)
-                    terminal.cursor.save()
-                    terminal.cursor.move(-(cursor) - len(prompt))
-                    terminal.erase_line()
-                    printf(prompt + ''.join(out), end = ' ')
-                    terminal.cursor.restore()
-                elif out != []:
-                    out.pop(cursor - 1)
-                    cursor -= 1
-        elif last == '\x12':
-            terminal.cursor.save()
-            terminal.cursor.move(-(cursor + 1) - len(prompt))
-            terminal.erase_line()
-            printf(prompt + ''.join(out), end = '')
-            terminal.cursor.restore()
-        elif last == "\x1b" and not raw and echo:
-            escape = last
-
-            loop = 0
-
-            while escape not in escseq.values():
-                escape += get_path("/dev/stdin")
-                loop += 1
-
-                if loop > 100:
-                    __log__(len(escape))
-                    break
+        if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
+            terminal.setup( kwargs.get("color"), kwargs.get("back"), kwargs.get("attr") )
             
-            __log__(repr(escape), ', ', last, ', ', cursor)
-            if escape == escseq['left'] and echo:
+        parts = []
+        for arg in args:
+            parts.append( str(arg) )
+        out = kwargs.get("sep"," ").join(parts) + kwargs.get("end","\n")
+
+        set_path("/dev/" + kwargs.get("file","stdout"), out)
+
+        if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
+            terminal.reset()
+    #print = printf
+
+    escseq = {'up' : '\x1b[A', 'down' : '\x1b[B', 'right' : '\x1b[C', 'left' : '\x1b[D',
+              'delete' : '\x1b[3~'}
+
+    @clean_function
+    def input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\n\x18\x04', history = ()):
+        printf(prompt, end = "")
+        char += 1
+
+        out = []
+        last = "x"
+        escape = ""
+
+        history = tuple(history) + (out,)
+
+        assert '\n' in endchar, 'input() only supports single-line input'
+
+        cursor = 0
+        hist = -1
+        while char > 0:
+            last = get_path("/dev/stdin")
+            if last in endchar and last:
+                printf()
+                if raw:
+                    return out
+                else:
+                    __log__(out)
+                    return ''.join(out)
+            elif last == "\x7f":
                 if cursor > 0:
-                    terminal.cursor.move(-1)
-                    cursor -= 1
-            elif escape == escseq['right'] and echo:
-                if cursor < len(out):
-                    terminal.cursor.move(1)
-                    cursor += 1
-            elif escape == escseq['up'] and echo:
-                hist += 1
-                if hist >= len(history):
-                    hist = 0
-                out = history[hist]
-                if echo:
-                    terminal.cursor.save()
-                    terminal.cursor.move(-(cursor) - len(prompt))
-                    terminal.erase_line()
-                    printf(prompt + ''.join(out), end = ' ')
-                    terminal.cursor.restore()
-            elif escape == escseq['down'] and echo:
-                hist -= 1
-                if hist < -len(history):
-                    hist = 0
-                out = history[hist]
-                if echo:
-                    terminal.cursor.save()
-                    terminal.cursor.move(-(cursor) - len(prompt))
-                    terminal.erase_line()
-                    printf(prompt + ''.join(out), end = ' ')
-                    terminal.cursor.restore()
-            elif escape == escseq['delete']:
-                if out != [] and echo:
-                    out.pop(cursor)
-                    terminal.cursor.save()
-                    terminal.cursor.move(-(cursor) - len(prompt))
-                    terminal.erase_line()
-                    printf(prompt + ''.join(out), end = ' ')
-                    terminal.cursor.restore()
-                elif out != []:
-                    out.pop(cursor)
-        elif last:
-            out.insert(cursor, last)
-            if echo:
-                terminal.cursor.move(1)
+                    if out != [] and echo:
+                        out.pop(cursor - 1)
+                        cursor -= 1
+                        terminal.cursor.move(-1)
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor - 1)
+                        cursor -= 1
+            elif last == '\x12':
                 terminal.cursor.save()
                 terminal.cursor.move(-(cursor + 1) - len(prompt))
                 terminal.erase_line()
                 printf(prompt + ''.join(out), end = '')
                 terminal.cursor.restore()
-            char -= 1
-            cursor += 1
+            elif last == "\x1b" and not raw and echo:
+                escape = last
 
-        if last:
-            __log__(len(last), ", ", len(escape), ", ", cursor)
+                loop = 0
 
-@clean_function
-def multiline_input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\x18\x04', history = (), start = None):
-    char += 1
+                while escape not in escseq.values():
+                    escape += get_path("/dev/stdin")
+                    loop += 1
 
-    out = [] if start is None else list(start)
-    last = "x"
-    escape = ""
-
-    history = tuple(history) + (out,)
-
-    assert '\n' not in endchar, "multiline_input() does not support single-line input"
-
-    cursor = 0 if start is None else len(start)
-    hist = -1
-
-    terminal.clear()
-
-    printf(prompt, end = "")
-
-    if start is not None:
-        printf(start, end = "")
-    
-    while char > 0:
-        last = get_path("/dev/stdin")
-        if last in endchar and last:
-            printf()
-            if raw:
-                return out
-            else:
-                __log__(out)
-                return ''.join(out)
-        elif last == "\x7f":
-            if cursor > 0:
-                if out != [] and echo:
-                    out.pop(cursor - 1)
-                    cursor -= 1
-                    terminal.cursor.move(-1)
-                    terminal.cursor.save()
-                    terminal.clear()
-                    printf(prompt + ''.join(out), end = ' ')
-                    terminal.cursor.restore()
-                elif out != []:
-                    out.pop(cursor - 1)
-        elif last == '\x12':
-            terminal.cursor.save()
-            terminal.clear()
-            printf(prompt + ''.join(out), end = '')
-            terminal.cursor.restore()
-        elif last == "\x1b" and not raw and echo:
-            escape = last
-
-            loop = 0
-
-            while escape not in escseq.values():
-                escape += get_path("/dev/stdin")
-                loop += 1
-
-                if loop > 100:
-                    __log__(len(escape))
-                    break
-            
-            __log__(repr(escape), ', ', last, ', ', cursor)
-            if escape == escseq['left']:
-                if cursor > 0:
-                    terminal.cursor.move(-1)
-                    cursor -= 1
-            elif escape == escseq['right']:
-                if cursor < len(out):
+                    if loop > 100:
+                        __log__(len(escape))
+                        break
+                
+                __log__(repr(escape), ', ', last, ', ', cursor)
+                if escape == escseq['left'] and echo:
+                    if cursor > 0:
+                        terminal.cursor.move(-1)
+                        cursor -= 1
+                elif escape == escseq['right'] and echo:
+                    if cursor < len(out):
+                        terminal.cursor.move(1)
+                        cursor += 1
+                elif escape == escseq['up'] and echo:
+                    hist += 1
+                    if hist >= len(history):
+                        hist = 0
+                    out = history[hist]
+                    if echo:
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                elif escape == escseq['down'] and echo:
+                    hist -= 1
+                    if hist < -len(history):
+                        hist = 0
+                    out = history[hist]
+                    if echo:
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                elif escape == escseq['delete']:
+                    if out != [] and echo:
+                        out.pop(cursor)
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor)
+            elif last:
+                out.insert(cursor, last)
+                if echo:
                     terminal.cursor.move(1)
-                    cursor += 1
-            elif escape == escseq['up']:
-                pass
-            elif escape == escseq['down']:
-                if cursor[1] > 0:
-                    terminal.cursor.move(0, 1)
-                    cursor[1] -= 1
-            elif escape == escseq['delete']:
-                if out != [] and echo:
-                    out.pop(cursor)
                     terminal.cursor.save()
-                    terminal.cursor.move(-(cursor) - len(prompt))
+                    terminal.cursor.move(-(cursor + 1) - len(prompt))
                     terminal.erase_line()
-                    printf(prompt + ''.join(out), end = ' ')
+                    printf(prompt + ''.join(out), end = '')
                     terminal.cursor.restore()
-                elif out != []:
-                    out.pop(cursor)
-        elif last:
-            if echo: printf(last, end = "")
-            out.insert(cursor, last)
-            char -= 1
-            cursor += 1
+                char -= 1
+                cursor += 1
 
-        if last:
-            __log__(len(last), ", ", len(escape), ", ", cursor)
+            if last:
+                __log__(len(last), ", ", len(escape), ", ", cursor)
+
+    @clean_function
+    def multiline_input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\x18\x04', history = (), start = None):
+        char += 1
+
+        out = [] if start is None else list(start)
+        last = "x"
+        escape = ""
+
+        history = tuple(history) + (out,)
+
+        assert '\n' not in endchar, "multiline_input() does not support single-line input"
+
+        cursor = 0 if start is None else len(start)
+        hist = -1
+
+        terminal.clear()
+
+        printf(prompt, end = "")
+
+        if start is not None:
+            printf(start, end = "")
+        
+        while char > 0:
+            last = get_path("/dev/stdin")
+            if last in endchar and last:
+                printf()
+                if raw:
+                    return out
+                else:
+                    __log__(out)
+                    return ''.join(out)
+            elif last == "\x7f":
+                if cursor > 0:
+                    if out != [] and echo:
+                        out.pop(cursor - 1)
+                        cursor -= 1
+                        terminal.cursor.move(-1)
+                        terminal.cursor.save()
+                        terminal.clear()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor - 1)
+            elif last == '\x12':
+                terminal.cursor.save()
+                terminal.clear()
+                printf(prompt + ''.join(out), end = '')
+                terminal.cursor.restore()
+            elif last == "\x1b" and not raw and echo:
+                escape = last
+
+                loop = 0
+
+                while escape not in escseq.values():
+                    escape += get_path("/dev/stdin")
+                    loop += 1
+
+                    if loop > 100:
+                        __log__(len(escape))
+                        break
+                
+                __log__(repr(escape), ', ', last, ', ', cursor)
+                if escape == escseq['left']:
+                    if cursor > 0:
+                        terminal.cursor.move(-1)
+                        cursor -= 1
+                elif escape == escseq['right']:
+                    if cursor < len(out):
+                        terminal.cursor.move(1)
+                        cursor += 1
+                elif escape == escseq['up']:
+                    pass
+                elif escape == escseq['down']:
+                    if cursor[1] > 0:
+                        terminal.cursor.move(0, 1)
+                        cursor[1] -= 1
+                elif escape == escseq['delete']:
+                    if out != [] and echo:
+                        out.pop(cursor)
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor)
+            elif last:
+                if echo: printf(last, end = "")
+                out.insert(cursor, last)
+                char -= 1
+                cursor += 1
+
+            if last:
+                __log__(len(last), ", ", len(escape), ", ", cursor)
+
+elif CIOS_MAGIC[0] == "cios":
+    @clean_function
+    def printf(*args, **kwargs):
+        if kwargs.get("file","stdout") == "stderr" and "color" not in kwargs:
+            kwargs["color"] = terminal.RED
+
+        if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
+            terminal.setup( kwargs.get("color"), kwargs.get("back"), kwargs.get("attr") )
+            
+        parts = []
+        for arg in args:
+            parts.append( str(arg) )
+        out = kwargs.get("sep"," ").join(parts) + kwargs.get("end","\n")
+
+        for char in out:
+            __files__["dev"].set( kwargs.get("file","stdout"), char )
+
+        if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
+            terminal.reset()
+    #print = printf
+
+    escseq = {'up' : '\x1b[A', 'down' : '\x1b[B', 'right' : '\x1b[C', 'left' : '\x1b[D',
+              'delete' : '\x1b[3~'}
+
+    @clean_function
+    def input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\n\x18\x04', history = ()):
+        printf(prompt, end = "")
+        char += 1
+
+        out = []
+        last = "x"
+        escape = ""
+
+        history = tuple(history) + (out,)
+
+        assert '\n' in endchar, 'input() only supports single-line input'
+
+        cursor = 0
+        hist = -1
+        while char > 0:
+            last = next(__files__["dev"]["stdin"])
+            if last in endchar and last:
+                printf()
+                if raw:
+                    return out
+                else:
+                    __log__(out)
+                    return ''.join(out)
+            elif last == "\x7f":
+                if cursor > 0:
+                    if out != [] and echo:
+                        out.pop(cursor - 1)
+                        cursor -= 1
+                        terminal.cursor.move(-1)
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor - 1)
+                        cursor -= 1
+            elif last == '\x12':
+                terminal.cursor.save()
+                terminal.cursor.move(-(cursor + 1) - len(prompt))
+                terminal.erase_line()
+                printf(prompt + ''.join(out), end = '')
+                terminal.cursor.restore()
+            elif last == "\x1b" and not raw and echo:
+                escape = last
+
+                loop = 0
+
+                while escape not in escseq.values():
+                    escape += next(__files__["dev"]["_stdin"])
+                    loop += 1
+
+                    if loop > 100:
+                        __log__(len(escape))
+                        break
+                
+                __log__(repr(escape), ', ', last, ', ', cursor)
+                if escape == escseq['left'] and echo:
+                    if cursor > 0:
+                        terminal.cursor.move(-1)
+                        cursor -= 1
+                elif escape == escseq['right'] and echo:
+                    if cursor < len(out):
+                        terminal.cursor.move(1)
+                        cursor += 1
+                elif escape == escseq['up'] and echo:
+                    hist += 1
+                    if hist >= len(history):
+                        hist = 0
+                    out = history[hist]
+                    if echo:
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                elif escape == escseq['down'] and echo:
+                    hist -= 1
+                    if hist < -len(history):
+                        hist = 0
+                    out = history[hist]
+                    if echo:
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                elif escape == escseq['delete']:
+                    if out != [] and echo:
+                        out.pop(cursor)
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor)
+            elif last:
+                out.insert(cursor, last)
+                if echo:
+                    terminal.cursor.move(1)
+                    terminal.cursor.save()
+                    terminal.cursor.move(-(cursor + 1) - len(prompt))
+                    terminal.erase_line()
+                    printf(prompt + ''.join(out), end = '')
+                    terminal.cursor.restore()
+                char -= 1
+                cursor += 1
+
+            if last:
+                __log__(len(last), ", ", len(escape), ", ", cursor)
+
+    @clean_function
+    def multiline_input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\x18\x04', history = (), start = None):
+        char += 1
+
+        out = [] if start is None else list(start)
+        last = "x"
+        escape = ""
+
+        history = tuple(history) + (out,)
+
+        assert '\n' not in endchar, "multiline_input() does not support single-line input"
+
+        cursor = 0 if start is None else len(start)
+        hist = -1
+
+        terminal.clear()
+
+        printf(prompt, end = "")
+
+        if start is not None:
+            printf(start, end = "")
+        
+        while char > 0:
+            last = next(__files__["dev"]["stdin"])
+            if last in endchar and last:
+                printf()
+                if raw:
+                    return out
+                else:
+                    __log__(out)
+                    return ''.join(out)
+            elif last == "\x7f":
+                if cursor > 0:
+                    if out != [] and echo:
+                        out.pop(cursor - 1)
+                        cursor -= 1
+                        terminal.cursor.move(-1)
+                        terminal.cursor.save()
+                        terminal.clear()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor - 1)
+            elif last == '\x12':
+                terminal.cursor.save()
+                terminal.clear()
+                printf(prompt + ''.join(out), end = '')
+                terminal.cursor.restore()
+            elif last == "\x1b" and not raw and echo:
+                escape = last
+
+                loop = 0
+
+                while escape not in escseq.values():
+                    escape += next(__files__["dev"]["_stdin"])
+                    loop += 1
+
+                    if loop > 100:
+                        __log__(len(escape))
+                        break
+                
+                __log__(repr(escape), ', ', last, ', ', cursor)
+                if escape == escseq['left']:
+                    if cursor > 0:
+                        terminal.cursor.move(-1)
+                        cursor -= 1
+                elif escape == escseq['right']:
+                    if cursor < len(out):
+                        terminal.cursor.move(1)
+                        cursor += 1
+                elif escape == escseq['up']:
+                    pass
+                elif escape == escseq['down']:
+                    if cursor[1] > 0:
+                        terminal.cursor.move(0, 1)
+                        cursor[1] -= 1
+                elif escape == escseq['delete']:
+                    if out != [] and echo:
+                        out.pop(cursor)
+                        terminal.cursor.save()
+                        terminal.cursor.move(-(cursor) - len(prompt))
+                        terminal.erase_line()
+                        printf(prompt + ''.join(out), end = ' ')
+                        terminal.cursor.restore()
+                    elif out != []:
+                        out.pop(cursor)
+            elif last:
+                if echo: printf(last, end = "")
+                out.insert(cursor, last)
+                char -= 1
+                cursor += 1
+
+            if last:
+                __log__(len(last), ", ", len(escape), ", ", cursor)
+else:
+    raise OSError, "Current CIOS chip not supported"
 
 @clean_class
 class _Cursor(object):
