@@ -13,7 +13,7 @@ import time
 import sys
 import tty
 import os
-os.chdir('/home/elijah/Git/emucios/emucios 0.x/')
+os.chdir('/home/elijah/Git/emucios/')
 _stdout = sys.stdout
 _stderr = sys.stderr
 _stdin = sys.stdin
