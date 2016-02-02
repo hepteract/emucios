@@ -15,8 +15,7 @@ def printf(*args, **kwargs):
         parts.append( str(arg) )
     out = kwargs.get("sep"," ").join(parts) + kwargs.get("end","\n")
 
-    for char in out:
-        __files__["dev"].set( kwargs.get("file","stdout"), char )
+    set_path("/dev/" + kwargs.get("file","stdout"), out)
 
     if "color" in kwargs or "back" in kwargs or "attr" in kwargs:
         terminal.reset()
@@ -41,7 +40,7 @@ def input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\
     cursor = 0
     hist = -1
     while char > 0:
-        last = next(__files__["dev"]["stdin"])
+        last = get_path("/dev/stdin")
         if last in endchar and last:
             printf()
             if raw:
@@ -75,7 +74,7 @@ def input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\
             loop = 0
 
             while escape not in escseq.values():
-                escape += next(__files__["dev"]["_stdin"])
+                escape += get_path("/dev/stdin")
                 loop += 1
 
                 if loop > 100:
@@ -161,7 +160,7 @@ def multiline_input(prompt = "", echo = True, char = 1000000000, raw = False, en
         printf(start, end = "")
     
     while char > 0:
-        last = next(__files__["dev"]["stdin"])
+        last = get_path("/dev/stdin")
         if last in endchar and last:
             printf()
             if raw:
@@ -192,7 +191,7 @@ def multiline_input(prompt = "", echo = True, char = 1000000000, raw = False, en
             loop = 0
 
             while escape not in escseq.values():
-                escape += next(__files__["dev"]["_stdin"])
+                escape += get_path("/dev/stdin")
                 loop += 1
 
                 if loop > 100:

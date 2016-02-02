@@ -90,7 +90,7 @@ def time():
 
 @clean_function
 def ls(path = "."):
-    return get_path(path).listdir()
+    return get_path(path).keys()
 
 class staticmethod(object):
     def __init__(self, function):

@@ -21,12 +21,13 @@ _stdout = sys.stdout
 _stderr = sys.stderr
 _stdin = sys.stdin
 
-def check_stdin(*args):
+"""def check_stdin(*args):
     if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
         return sys.stdin.read(1)
     else:
-        return ''
-
+        return ''"""
+def check_stdin():
+    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])    
 
 def cleanerrorfunc(func):
 
@@ -91,15 +92,25 @@ class Directory(object):
 
 superpass = lambda: None
 
+def bind_file(f):
+    def file_wrapper(arg = None):
+        if arg is None:
+            return f.read(1)
+        else:
+            f.write(str(arg))
+            f.flush()
+    return file_wrapper
+
 fs = open_archive("./fs.pya")
 fs.magic.update({
-    'stderr' : (superpass, lambda x: _stderr.write(x)),
-    'stdout' : (superpass, lambda x: _stdout.write(x)),
-    'stdin'  : (check_stdin, superpass),
+    'stderr' : (superpass, bind_file(_stderr)),
+    'stdout' : (superpass, bind_file(_stdout)),
+    '_stdin'  : (check_stdin, superpass),
     'clock'  : (time.time, superpass),
-    '_stdin' : (lambda: stdin.read(1), superpass),
+    'stdin' : (bind_file(_stdin), superpass),
     'error'  : (sys.exc_info, superpass),
-    'random' : (lambda : os.urandom(1), superpass)
+    'random' : (lambda : os.urandom(1), superpass),
+    'sleep'  : (lambda: time.sleep(1), time.sleep)
     })
 
 class SystemInterrupt(Exception):

@@ -1,5 +1,7 @@
 #!/usr/bin/env python2
 
+from __future__ import print_function
+
 import cPickle as pickle
 import shelve
 import types
@@ -10,6 +12,7 @@ class FileSystem(object):
         self.shelf = shelf
         self.auto = autosync
         self.magic = magic if magic is not None else {}
+        self.readcount = None
 
     def __getitem__(self, name):
         if name in self.magic:
@@ -21,7 +24,9 @@ class FileSystem(object):
             return self.shelf[name]
 
     def __setitem__(self, name, value):
-        if name in self.magic:
+        if name == "readcount":
+            self.readcount = value
+        elif name in self.magic:
             self.magic[name][1] (value)
         else:
             self.shelf[name] = value
@@ -37,6 +42,9 @@ class FileSystem(object):
         self.shelf.sync()
 
     def set_path(self, path, value, create_paths = False):
+        if path.startswith("/"):
+            path = path[1:]
+            
         path = path.split("/")
         cur = self
         for item in path[:-1]:
@@ -47,11 +55,19 @@ class FileSystem(object):
         cur[ path[-1] ] = value
 
     def get_path(self, path):
+        if path.startswith("/"):
+            path = path[1:]
+            
         path = path.split("/")
         cur = self
         for item in path:
             cur = cur[item]
-        return cur
+        if type(cur) is str and self.readcount:
+            ret = cur[:self.readcount]
+            self.readcount = None
+            return ret
+        else:
+            return cur
 
     def keys(self):
         return self.shelf.keys()

@@ -11,9 +11,9 @@ DEBUG = False
 def create_process(name, dict):
     if name.startswith("/"):
         codefile = open(name)
-    elif name in __files__["bin"].listdir():
+    elif name in __files__["bin"].keys():
         codefile = open("/bin/" + name)
-    elif name in __files__["usr"].listdir():
+    elif name in __files__["usr"].keys():
         return create_activity(name, dict)
     else:
         raise ProcessError, "No such program or application " + name

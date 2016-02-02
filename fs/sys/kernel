@@ -1,10 +1,138 @@
 #!/usr/bin/python2.7
 
-while True:
-    input = ""
-    while not input.endswith("\n"):
-        char = __files__["stdin"]
-        if char:
-            __files__["stdout"] = char
-            input += char
-    exec input[:-1]
+__modules__ = {}
+
+def _identity_import(module, name):
+    return module
+
+def do_import(_name, local = True, include = False, reuse = True, dict = None):
+    name = _name.split(".")[0]
+    
+    if reuse and name in __modules__:
+        return __modules__[name]
+    
+    if name.startswith("/"):
+        codefile = open(name)
+    else:
+        codefile = open("/lib/" + name)
+    code = codefile.read()
+    del codefile
+
+    module = __module__(name)
+    module.__name__ = name
+    module.__file__ = name
+    module.__dict__["__builtins__"] = __builtins__
+    module.__dict__["__imp__"] = _identity_import
+
+    if dict:
+        module.__dict__.update(dict)
+    
+    if local:
+        module_dict = __dict__.copy()
+        module_dict["__dict__"] = module.__dict__
+        module.__dict__.update(module_dict)
+
+    obj = compile(code, name, "exec")
+    
+    exec obj in module.__dict__
+
+    if include:
+        if dict:
+            dict.update(module.__dict__)
+        else:
+            for name, value in module.__dict__.items():
+                __dict__[name] = value
+
+    for name in name.split(".")[1:]:
+        module = getattr(module, name)
+
+    module = module.__imp__(module, name)
+
+    __modules__[name] = module
+
+    return module
+
+def __import__(name, *args, **kwargs):
+    return do_import(name, True)
+__builtins__["__import__"] = __import__
+
+def include(name):
+    return do_import(name, include = True)
+
+@force_clean_function
+def get_path(path, bytes = None):
+    __files__["readcount"] = bytes
+    if path.startswith("/dev"):
+        path = path[4:]
+    return __files__.get_path(path)
+
+def set_path(path, val):
+    if path.startswith("/dev"):
+        path = path[4:]
+    __files__.set_path(path, val)
+
+class file(object):
+    def __init__(self, path, mode = "r"):
+        self.path = path
+        self.mode = mode
+
+        if self.mode == "a":
+            self.text = get_path(self.path)
+        else:
+            self.text = ""
+
+        assert mode in "rwa", "Mode must be read, write, or append"
+
+    def read(self, bytes = 0):
+        return get_path(self.path, bytes)
+
+    def write(self, text):
+        self.text += text
+
+    def flush(self):
+        if "w" in self.mode or "a" in self.mode:
+            set_path(self.path, self.text)
+
+    def __del__(self):
+        self.flush()
+
+    def close(self):
+        del self
+open = file
+
+lib = include("libpy")
+io = include("stdio")
+
+def fallback():
+    while True:
+        try:
+            __files__["stdout"] = ">>> "
+            input = ""
+            while not input.endswith("\n"):
+                __files__["sleep"] = 0.01
+                while __files__["_stdin"]:
+                    char = __files__["stdin"]
+                    if char == '\x7f':
+                        if input != "":
+                            __files__["stdout"] = "\x1b[D \x1b[D"
+                            input = input[:-1]
+                    else:
+                        __files__["stdout"] = char
+                        input += char
+            exec input[:-1]
+        except:
+            exc = __files__["error"]
+            if exc[0] in (KeyboardInterrupt, SystemInterrupt):
+                raise SystemInterrupt
+            __files__["stderr"] = exc[0].__name__
+            __files__["stderr"] = ": "
+            __files__["stderr"] = exc[1]
+            __files__["stderr"] = "\n"
+
+def bootstrap():
+    userland = do_import("/sys/userland", local = True)
+    #userland.fallback = interact
+    userland.bootstrap()
+
+bootstrap()
+#fallback()
