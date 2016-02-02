@@ -273,7 +273,7 @@ def _main(f = None, data = None, arguments = None, handled = False):
     if arguments is None:
         arguments = sys.argv
     else:
-        arguments.insert(0, 'emucios')
+        arguments.insert(0, 'illegal')
         
     if os.path.exists('sys/kernel'):
         with open('sys/kernel') as f:
@@ -283,6 +283,8 @@ def _main(f = None, data = None, arguments = None, handled = False):
             code = f.read()
     else:
         code = "raise OSError, 'No bootable medium detected'"
+
+    arguments[0] = "cios2"
     code = 'CIOS_MAGIC = ' + repr(arguments) + '\n' + code
     obj = compile(code, 'kernel', 'exec')
     exec obj in scope
