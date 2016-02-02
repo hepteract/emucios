@@ -1,0 +1,15 @@
+#!/usr/bin/env python2
+
+import archive
+import sys
+
+if len(sys.argv) not in (2, 3):
+    print "Usage: pyzip <directory> [output]"
+
+elif len(sys.argv) == 2:
+    f = archive.open_archive(sys.argv[1] + ".pya")
+    f.compress(sys.argv[1])
+
+elif len(sys.argv) == 3:
+    f = archive.open_archive(sys.argv[2])
+    f.compress(sys.argv[1])
