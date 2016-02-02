@@ -3,5 +3,8 @@
 while True:
     input = ""
     while not input.endswith("\n"):
-        input += __files__["stdin"]
+        char = __files__["stdin"]
+        if char:
+            __files__["stdout"] = char
+            input += char
     exec input[:-1]
