@@ -13,6 +13,7 @@ class FileSystem(object):
         self.auto = autosync
         self.magic = magic if magic is not None else {}
         self.readcount = None
+        self.path = 0xDEADBABA
 
     def __getitem__(self, name):
         if name in self.magic:
