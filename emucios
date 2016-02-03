@@ -2,6 +2,6 @@
 
 cd ~/Git/emucios
 rebuild-fs
-emucios-latest
+emucios-latest $@
 cd fs
 punzip ../fs.pya
