@@ -163,9 +163,11 @@ def _main(f = None, data = None, arguments = None, handled = False):
                 _main(f, data, arguments, True)
             except:
                 termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+                fs.flush()
                 raise
             else:
                 termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+                fs.flush()
     if arguments is None:
         arguments = sys.argv
     else:
@@ -189,6 +191,8 @@ except:
         _main()
     except:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        fs.flush()
         raise
     else:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        fs.flush()

@@ -122,7 +122,7 @@ mkdir = do_mkdir
 
 @relative
 def do_rm(loc):
-    set_path(loc, None)
+    del_path(loc)
 rm = do_rm
 
 def do_mv(loc0, loc1):

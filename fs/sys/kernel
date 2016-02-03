@@ -74,6 +74,11 @@ if CIOS_MAGIC[0] == "cios2":
             path = path[4:]
         __files__.set_path(path, val)
 
+    def del_path(path):
+        if path.startswith("/dev") or path.startswith("/sys"):
+            return
+        __files__.del_path(path)
+
     class file(object):
         def __init__(self, path, mode = "r"):
             self.path = path

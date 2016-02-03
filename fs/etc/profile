@@ -13,3 +13,4 @@ define shutdown quit()
 define exit quit()
 
 define time cat("/dev/clock")
+define error cat("/dev/error")

@@ -55,6 +55,16 @@ class FileSystem(object):
             cur = cur[item]
         cur[ path[-1] ] = value
 
+    def del_path(self, path):
+        if path.startswith("/"):
+            path = path[1:]
+            
+        path = path.split("/")
+        cur = self
+        for item in path[:-1]:
+            cur = cur[item]
+        del cur[ path[-1] ]
+
     def get_path(self, path):
         if path.startswith("/"):
             path = path[1:]
@@ -94,21 +104,22 @@ def _extract(archive):
     orig = os.getcwd()
 
     for key in archive.keys():
-        item = archive[key]
-        if type(item) is dict:
-            try:
-                os.mkdir(key)
-            except OSError:
-                pass
-            os.chdir(key)
-            _extract(item)
-            os.chdir("..")
-        elif type(item) is str:
-            with open(key, "w") as f:
-                f.write(item)
-        else:
-            with open(key, "w") as f:
-                f.write( str(item) )
+        if key != "":
+            item = archive[key]
+            if type(item) is dict:
+                try:
+                    os.mkdir(key)
+                except OSError:
+                    pass
+                os.chdir(key)
+                _extract(item)
+                os.chdir("..")
+            elif type(item) is str:
+                with open(key, "w") as f:
+                    f.write(item)
+            else:
+                with open(key, "w") as f:
+                    f.write( str(item) )
 
     os.chdir(orig)
 
