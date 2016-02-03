@@ -2,6 +2,8 @@
 
 __modules__ = {}
 
+Directory = dict
+
 def _identity_import(module, name):
     return module
 
