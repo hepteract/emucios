@@ -168,6 +168,7 @@ commands = {"exit" : exit,
 HOME = "/root"
 
 def eval_command(cmd):
+    pid = -1
     cmd = cmd.split(" ")
     if cmd[0] in commands:
         #commands[ cmd[0] ].path = path
@@ -179,9 +180,11 @@ def eval_command(cmd):
             printf(cmd[0], " (" + cmd[0] + "): failed with error code", 0 - ret, file="stderr")
     else:
         try:
-            start(cmd[0], *cmd[1:])
+            pid = spawn(cmd[0], args = cmd[1:])
+            #start(cmd[0], *cmd[1:])
         except ProcessError:
             exec " ".join(cmd)
+    return pid
 
 def _main(prompt = None):
     history = [[]]
@@ -205,7 +208,10 @@ def _main(prompt = None):
             history.insert(0, tmp)
 
         try:
-            eval_command(cmd)
+            pid = eval_command(cmd)
+
+            if pid != -1:
+                yield SYSCALL, WAIT, pid
         except ProcessInterrupt:
             break
         except SystemInterrupt:

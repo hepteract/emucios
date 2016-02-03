@@ -1,5 +1,5 @@
 #!/usr/bin/python2.7
 
 def _main(num):
-    processes.pop(int(num))
+    processes[int(num)] = None
     yield

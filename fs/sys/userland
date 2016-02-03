@@ -126,7 +126,7 @@ def run_all():
             if type(ret) is tuple and len(ret) == 3:
                 if ret[0] == SYSCALL:
                     if ret[1] == SLEEP: # sleep for <input> number of seconds
-                        sleeping[i] = get_path("/dev/clock") + ret[2]
+                        sleeping[i] = float(get_path("/dev/clock")) + float(ret[2])
                     elif ret[1] == WAIT: # wait for process <input> to end
                         waiting[i] = ret[2]
             ret = None
