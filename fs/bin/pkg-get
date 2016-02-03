@@ -6,11 +6,8 @@ def _main(cmd, *packages):
 	if cmd == "update":
                 set_path("/etc/pkg-index.raw", "")
 		for line in get_path("/etc/pkg-sources").split("\n"):
-			spawn("wget", args = [line, "/etc/pkg-index.raw", "a"])
-			yield
-			yield
-			yield
-			yield
+			pid = spawn("wget", args = [line, "/etc/pkg-index.raw", "a"])
+			yield SYSCALL, WAIT, pid
 			
 		set_path("/etc/pkg-index", {})
 		for line in get_path("/etc/pkg-index.raw").split("\n"):
@@ -26,12 +23,10 @@ def _main(cmd, *packages):
                         pkg = get_path("/etc/pkg-index/"+ package).split(';')
                         url = pkg[0]
                         ver = pkg[1]
-                        spawn("wget", args = [url, "/bin/" + package,\
+                        pid = spawn("wget", args = [url, "/bin/" + package,\
                                               "w", True])
                         set_path("/etc/pkg-installed/" + package, ver)
-                        yield
-                        yield
-                        yield
+                        yield SYSCALL, WAIT, pid
         elif cmd == "upgrade":
                 installed = get_path("/etc/pkg-installed")
                 for package, data in get_path("/etc/pkg-index").items():
@@ -40,9 +35,10 @@ def _main(cmd, *packages):
                         ver = data[1]
                         if package in installed.keys():
                                 if int(ver) > int(installed[package]):
-                                        spawn("wget", args = [url, "/bin/" + package,\
+                                        pid = spawn("wget", args = [url, "/bin/" + package,\
                                                       "w", True])
                                         set_path("/etc/pkg-installed/" + package, ver)
+                                        yield SYSCALL, WAIT, pid
         elif cmd == "remove":
                 for package in packages:
                         if package in get_path("/etc/pkg-installed").keys():

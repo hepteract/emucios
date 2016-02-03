@@ -7,6 +7,12 @@ class ProcessError(Exception): pass
 
 DEBUG = False
 
+SYSCALL = 0xDEAD
+# System calls - format: (SYSCALL, <type>, <input>)
+SLEEP = 0x0A # sleep for <input> number of seconds
+WAIT = 0x0B # wait for process #<input> to end
+# End system calls
+
 @clean_function
 def create_process(name, dict):
     if name.startswith("/"):
@@ -92,9 +98,22 @@ def alive():
             return True
     return False
 
+sleeping = {}
+waiting = {}
 @clean_function
 def run_all():
     for i, process in enumerate(processes, 0):
+        if i in sleeping:
+            if get_path("/dev/clock") >= sleeping[i]:
+                del sleeping[i]
+            else:
+                continue
+        elif i in waiting:
+            if processes[ waiting[i] ] is None:
+                del waiting[i]
+            else:
+                continue
+        ret = None
         if process is not None:
             try:
                 ret = process.main.next()
@@ -104,6 +123,13 @@ def run_all():
             except ProcessInterrupt:
                 processes[i] = None
                 del process
+            if type(ret) is tuple and len(ret) == 3:
+                if ret[0] == SYSCALL:
+                    if ret[1] == SLEEP: # sleep for <input> number of seconds
+                        sleeping[i] = get_path("/dev/clock") + ret[2]
+                    elif ret[1] == WAIT: # wait for process <input> to end
+                        waiting[i] = ret[2]
+            ret = None
 
 def fallback():
     pass
