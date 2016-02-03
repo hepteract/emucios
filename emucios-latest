@@ -138,11 +138,12 @@ builtins['__module__'] = sys.__class__
 builtins['Directory'] = Directory
 builtins['__files__'] = fs
 builtins['__log__'] = log
+builtins['str'] = unicode
 if len(sys.argv) > 1:
     builtins['__debug__'] = print
 else:
     builtins['__debug__'] = lambda *args: None
-keep = ('KeyboardInterrupt', 'str', 'int', 'dict', 'list', 'True', 'False', 'None', 'tuple', 'object', 'StopIteration', 'SyntaxError', 'Exception', 'compile', 'OSError', 'IOError', 'chr', 'ord', 'TypeError', 'repr', 'NameError', 'intern', 'ImportError', 'bool', 'float')
+keep = ('KeyboardInterrupt', 'int', 'dict', 'list', 'True', 'False', 'None', 'tuple', 'object', 'StopIteration', 'SyntaxError', 'Exception', 'compile', 'OSError', 'IOError', 'chr', 'ord', 'TypeError', 'repr', 'NameError', 'intern', 'ImportError', 'bool', 'float')
 for builtin in keep:
     try:
         builtins[builtin] = __builtins__.__dict__[builtin]

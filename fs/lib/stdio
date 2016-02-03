@@ -176,14 +176,16 @@ if CIOS_MAGIC[0] == "cios2":
                         terminal.cursor.move(-1)
                         terminal.cursor.save()
                         terminal.clear()
-                        printf(prompt + ''.join(out), end = ' ')
+                        render = list(out)
+                        #render[cursor] = '\xdb'
+                        printf(prompt + ''.join(render), end = ' ')
                         terminal.cursor.restore()
                     elif out != []:
                         out.pop(cursor - 1)
             elif last == '\x12':
                 terminal.cursor.save()
                 terminal.clear()
-                printf(prompt + ''.join(out), end = '')
+                printf(prompt + u''.join(out), end = '')
                 terminal.cursor.restore()
             elif last == "\x1b" and not raw and echo:
                 escape = last
@@ -208,11 +210,16 @@ if CIOS_MAGIC[0] == "cios2":
                         terminal.cursor.move(1)
                         cursor += 1
                 elif escape == escseq['up']:
-                    pass
+                    '''parts = "".join(out[:cursor]).split("\n")
+                    if len(parts) > 1:
+                        terminal.cursor.move(0, -1)'''
+                    #cursor -= len(parts[-1])
                 elif escape == escseq['down']:
-                    if cursor[1] > 0:
-                        terminal.cursor.move(0, 1)
-                        cursor[1] -= 1
+                    '''parts = "".join(out[cursor:]).split("\n")
+                    if len(parts) > 1:
+                        terminal.cursor.move(0, 1)'''
+                    #cursor -= len(parts[0])
+                        
                 elif escape == escseq['delete']:
                     if out != [] and echo:
                         out.pop(cursor)
