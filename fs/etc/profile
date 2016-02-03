@@ -14,3 +14,4 @@ define exit quit()
 
 define time cat("/dev/clock")
 define error cat("/dev/error")
+define touch open(args[0], "w")

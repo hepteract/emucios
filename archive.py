@@ -19,7 +19,7 @@ class FileSystem(object):
         if name in self.magic:
             return self.magic[name][0] ()
         
-        elif name == "":
+        elif name in ("", "."):
             return self
         else:
             return self.shelf[name]
