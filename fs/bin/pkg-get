@@ -2,5 +2,6 @@
 
 def _main(cmd, *packages):
 	if cmd == "update":
-		spawn("wget", args = ["raw.githubusercontent.com/elijaheac/emucios/master/pkg-index", "/etc/pkg-index"])
+		for line in open("/etc/pkg-sources").read().split("\n"):
+			spawn("wget", args = [line, "/etc/pkg-index", "a"])
         yield
