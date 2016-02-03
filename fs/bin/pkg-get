@@ -20,6 +20,7 @@ def _main(cmd, *packages):
                                 url = data[1]
                                 set_path(os.path.join("/etc/pkg-index/", name),\
                                          url)
+                del_path("/etc/pkg-index.raw")
         elif cmd == "install":
                 for package in packages:
                         pkg = get_path("/etc/pkg-index/"+ package).split(';')
@@ -42,4 +43,9 @@ def _main(cmd, *packages):
                                         spawn("wget", args = [url, "/bin/" + package,\
                                                       "w", True])
                                         set_path("/etc/pkg-installed/" + package, ver)
+        elif cmd == "remove":
+                for package in packages:
+                        if package in get_path("/etc/pkg-installed").keys():
+                                del_path("/etc/pkg-installed/" + package)
+                                del_path("/bin/" + package)
         yield
