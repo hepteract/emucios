@@ -7,12 +7,6 @@ class ProcessError(Exception): pass
 
 DEBUG = False
 
-SYSCALL = 0xDEAD
-# System calls - format: (SYSCALL, <type>, <input>)
-SLEEP = 0x0A # sleep for <input> number of seconds
-WAIT = 0x0B # wait for process #<input> to end
-# End system calls
-
 @clean_function
 def create_process(name, dict):
     if name.startswith("/"):
@@ -98,6 +92,13 @@ def alive():
             return True
     return False
 
+SYSCALL = 0xDEAD
+# System calls - format: (SYSCALL, <type>, <input>)
+SLEEP = 0x0A # sleep for <input> number of seconds - no return
+WAIT = 0x0B # wait for process #<input> to end - no return
+PID = 0x0C # get own PID (input ignored) - no return
+# End system calls
+
 sleeping = {}
 waiting = {}
 @clean_function
@@ -129,6 +130,8 @@ def run_all():
                         sleeping[i] = float(get_path("/dev/clock")) + float(ret[2])
                     elif ret[1] == WAIT: # wait for process <input> to end
                         waiting[i] = ret[2]
+                    elif ret[1] == PID:
+                        process.send(i)
             ret = None
 
 def fallback():
