@@ -44,6 +44,7 @@ def create_process(name, dict):
     module.__builtins__["get_path"] = module.__dict__["get_path"] = relative(get_path)
     module.__builtins__["set_path"] = module.__dict__["set_path"] = relative(set_path)
     module.__builtins__["ls"] = module.__dict__["ls"] = relative(ls)
+    del module.fork
 
     obj = compile(code, name, "exec")
     exec obj in module.__dict__
@@ -57,15 +58,16 @@ def create_activity(name, dict):
 processes = []
 
 @clean_function
-def spawn(name, dict = None, args = [], kwargs = {}):
+def spawn(name, dict = None, args = [], kwargs = {}, process = None):
     if dict is None:
         dict = __dict__
-    try:
-        process = create_process(name, dict)
-    except:
-        #process = create_activity(name, dict)
-        #return -1
-        raise
+    if process is None:
+        try:
+            process = create_process(name, dict)
+        except:
+            #process = create_activity(name, dict)
+            #return -1
+            raise
         
     if None in processes:
         index = processes.index(None)
@@ -86,6 +88,19 @@ def spawn(name, dict = None, args = [], kwargs = {}):
     else:
         return index
 
+def fork(process, code):
+    name = process.__name__
+    dict = process.__dict__
+    
+    module = __module__(name)
+    module.__file__ = name + ".pye"
+    module.__dict__.update(dict)
+    module.__name__ = name
+
+    module._main = code
+    pid = spawn(None, process = module)
+    process.main.send(pid)
+
 def alive():
     for process in processes:
         if process is not None:
@@ -96,7 +111,8 @@ SYSCALL = 0xDEAD
 # System calls - format: (SYSCALL, <type>, <input>)
 SLEEP = 0x0A # sleep for <input> number of seconds - no return
 WAIT = 0x0B # wait for process #<input> to end - no return
-PID = 0x0C # get own PID (input ignored) - no return
+PID = 0x0C # get own PID (input ignored) - return PID of current process
+FORK = 0x0D # spawn new process with same dict and generator <input> - return PID of new process
 # End system calls
 
 sleeping = {}
@@ -130,8 +146,10 @@ def run_all():
                         sleeping[i] = float(get_path("/dev/clock")) + float(ret[2])
                     elif ret[1] == WAIT: # wait for process <input> to end
                         waiting[i] = ret[2]
-                    elif ret[1] == PID:
-                        process.send(i)
+                    elif ret[1] == PID: # get own PID
+                        process.main.send(i)
+                    elif ret[1] == FORK: # fork current process with generator <input>
+                        fork(process, ret[2])
             ret = None
 
 def fallback():

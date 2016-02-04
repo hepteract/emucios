@@ -1,0 +1,14 @@
+#!/usr/bin/env python2
+
+def forked():
+    printf("I'm the new process!")
+    pid = yield SYSCALL, PID, None
+    printf("I'm PID", pid)
+
+def _main():
+    printf("Forking!")
+    new = yield SYSCALL, FORK, forked
+    printf("I'm the old process!")
+    yield
+    pid = yield SYSCALL, PID, None
+    printf("I'm", pid, "and my child is", new)

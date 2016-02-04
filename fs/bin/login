@@ -21,7 +21,8 @@ def _main():
                         processes[pid].HOME = user[passwd.HOME]
                         processes[pid].CUR_DIR = user[passwd.HOME]
                         yield SYSCALL, WAIT, pid
-                        continueo
+                        username = None
+                        break
                     except KeyboardInterrupt:
                         pass
                     except ProcessInterrupt:
@@ -30,4 +31,7 @@ def _main():
                         printf("Failed to launch user shell", user[passwd.SHELL],\
                                file = "stderr")
                         raise
-        printf("Incorrect username or password\n")
+        if username is None:
+            terminal.clear()
+        else:
+            printf("Incorrect username or password\n")
