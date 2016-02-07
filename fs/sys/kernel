@@ -1,5 +1,10 @@
 #!/usr/bin/python2.7
 
+#$ CIOS HEADER $#
+#$ NAME = PyOS $#
+#$ AUTHOR = Hepteract $#
+#$ VERSION = 2.1 $#
+
 __modules__ = {}
 
 Directory = dict
