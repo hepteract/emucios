@@ -1,9 +1,0 @@
-#!/bin/sh
-
-cd ~/Coding/emucios
-rebuild-fs
-emucios-latest $@
-rm -rf fs
-mkdir fs
-cd fs
-punzip ../fs.pya
