@@ -118,8 +118,9 @@ def _extract(archive):
                 with open(key, "w") as f:
                     f.write(item)
             else:
-                with open(key, "w") as f:
-                    f.write( str(item) )
+#                with open(key, "w") as f:
+#                    f.write( str(item) )
+		pass
 
     os.chdir(orig)
 
