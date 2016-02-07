@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd ~/Git/emucios
+cd ~/Coding/emucios
 rebuild-fs
 emucios-latest $@
 rm -rf fs

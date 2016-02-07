@@ -141,7 +141,7 @@ if CIOS_MAGIC[0] == "cios2":
     def multiline_input(prompt = "", echo = True, char = 1000000000, raw = False, endchar = '\x18\x04', history = (), start = None):
         char += 1
 
-        out = [[]] if start is None else [list(line) for line in start.split("\n")]
+        out = [] if start is None else list(start)
         last = "x"
         escape = ""
 
@@ -150,7 +150,6 @@ if CIOS_MAGIC[0] == "cios2":
         assert '\n' not in endchar, "multiline_input() does not support single-line input"
 
         cursor = 0 if start is None else len(start)
-	cursor_y = 0 if start is None else len(out)
         hist = -1
 
         terminal.clear()
@@ -168,41 +167,28 @@ if CIOS_MAGIC[0] == "cios2":
                     return out
                 else:
                     __log__(out)
-                    return '\n'.join((''.join(line) for line in out))
+                    return ''.join(out)
             elif last == "\x7f":
                 if cursor > 0:
-                    if out[cursor_y] != [] and echo:
-                        out[cursor_y].pop(cursor - 1)
+                    if out != [] and echo:
+                        out.pop(cursor - 1)
                         cursor -= 1
                         terminal.cursor.move(-1)
                         terminal.cursor.save()
                         terminal.clear()
-                        render = [''.join(line) for line in out]
+                        render = list(out)
                         #render[cursor] = '\xdb'
-                        printf(prompt + '\n'.join(render), end = ' ')
+                        printf(prompt + ''.join(render), end = ' ')
                         terminal.cursor.restore()
-                    elif out[cursor_y] != []:
-                        out[cursor_y].pop(cursor - 1)
-		    elif out[cursor_y] == [] and echo:
-			terminal.clear()
-			render = [''.join(line) for line in out]
-			printf('\n'.join(render[:cursor_y]), end = "")
-			terminal.cursor.save()
-			render.pop(cursor_y)
-			printf('\n'.join(render[cursor_y:]), end = "")
-			terminal.cursor.restore()
-
-			out.pop(cursor_y)
-			cursor_y -= 1
-			cursor = len(out[cursor_y]) + 1
+                    elif out != []:
+                        out.pop(cursor - 1)
+            elif last == '\x12':
                 terminal.cursor.save()
                 terminal.clear()
-                printf(prompt + u'\n'.join([ ''.join(line) for line in out ]), end = '')
+                printf(prompt + u''.join(out), end = '')
                 terminal.cursor.restore()
 	    elif last == '\n':
-		cursor_y += 1
 	    	printf()
-		out.insert( cursor_y, [] )
             elif last == "\x1b" and not raw and echo:
                 escape = last
 
