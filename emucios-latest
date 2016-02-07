@@ -154,28 +154,23 @@ scope = {'__builtins__': builtins,
 scope['__dict__'] = scope
 
 def _main(f = None, data = None, arguments = None, handled = False):
-    try:
-        __exec__nope
-    except:
-        pass
-    else:
-        if not handled:
-            old_settings = termios.tcgetattr(sys.stdin)
-            try:
-                tty.setcbreak(sys.stdin.fileno())
-                _main(f, data, arguments, True)
-            except:
-                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-                fs.flush()
-                raise
-            else:
-                termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-                fs.flush()
+    if not handled:
+        old_settings = termios.tcgetattr(sys.stdin)
+        try:
+            tty.setcbreak(sys.stdin.fileno())
+            _main(f, data, arguments, True)
+        except:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+            fs.flush()
+            raise
+        else:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+            fs.flush()
     if arguments is None:
         arguments = sys.argv
     else:
         arguments.insert(0, 'illegal')
-        
+
     if "sys" in fs.keys():
         if "kernel" in fs["sys"]:
             code = fs["sys"]["kernel"]
@@ -185,17 +180,14 @@ def _main(f = None, data = None, arguments = None, handled = False):
     obj = compile(code, 'kernel', 'exec')
     exec obj in scope
 
+old_settings = termios.tcgetattr(sys.stdin)
 try:
-    __exec__nope
+    tty.setcbreak(sys.stdin.fileno())
+    _main(handled = True)
 except:
-    old_settings = termios.tcgetattr(sys.stdin)
-    try:
-        tty.setcbreak(sys.stdin.fileno())
-        _main()
-    except:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-        fs.flush()
-        raise
-    else:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-        fs.flush()
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+    fs.flush()
+    raise
+else:
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+    fs.flush()
