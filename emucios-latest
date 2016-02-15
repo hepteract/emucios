@@ -113,7 +113,7 @@ fs.magic.update({
     'error'  : (sys.exc_info, superpass),
     'random' : (lambda : os.urandom(1), superpass),
     'sleep'  : (lambda: time.sleep(1), time.sleep),
-    'nic'    : (network.read, network.write)
+#    'nic'    : (network.read, network.write)
     })
 
 class SystemInterrupt(Exception):
