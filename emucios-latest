@@ -4,8 +4,6 @@ from __future__ import print_function
 
 from archive import open_archive, FileSystem
 
-import network
-
 DO_CLEAN_FUNCTIONS = False
 
 import collections
@@ -112,8 +110,7 @@ fs.magic.update({
     'stdin'  : (bind_file(_stdin), superpass),
     'error'  : (sys.exc_info, superpass),
     'random' : (lambda : os.urandom(1), superpass),
-    'sleep'  : (lambda: time.sleep(1), time.sleep),
-#    'nic'    : (network.read, network.write)
+    'sleep'  : (lambda: time.sleep(1), time.sleep)
     })
 
 class SystemInterrupt(Exception):
