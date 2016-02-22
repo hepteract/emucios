@@ -122,12 +122,12 @@ waiting = {}
 @clean_function
 def run_all():
     for i, process in enumerate(processes, 0):
-        if i in sleeping:
+        if i in sleeping and process is not None:
             if get_path("/dev/clock") >= sleeping[i]:
                 del sleeping[i]
             else:
                 continue
-        elif i in waiting:
+        elif i in waiting and process is not None:
             if processes[ waiting[i] ] is None:
                 del waiting[i]
             else:
