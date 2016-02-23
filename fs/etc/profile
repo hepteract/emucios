@@ -9,9 +9,11 @@ else:\
 	CUR_USER = "root"
 
 define logout exit()
-define shutdown quit()
 define exit quit()
 
 define time cat("/dev/clock")
 define error cat("/dev/error")
 define touch open(args[0], "w")
+
+define init set_path("/etc/initmgr/socket", args[0])
+define shutdown set_path("/etc/initmgr/socket", "halt")
