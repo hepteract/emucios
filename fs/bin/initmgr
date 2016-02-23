@@ -8,10 +8,11 @@ def switch_init(initlevel):
 		
 		for name, args in\
 		    get_path("/etc/initmgr")[initlevel]["start"].items():
-			if "loud" in CIOS_MAGIC:
-				printf("[START]", name)
-			spawn(name, args = args.split(",")\
-		   	    if args != [""] else () )
+			if not process_exists(name):
+				if "loud" in CIOS_MAGIC:
+					printf("[START]", name)
+				spawn(name, args = args.split(",")\
+		   	    	    if args != [""] else () )
 		for name in\
 		    get_path("/etc/initmgr")[initlevel]["stop"].keys():
 			if "loud" in CIOS_MAGIC:
