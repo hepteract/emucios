@@ -128,10 +128,12 @@ SLEEP = 0x0A # sleep for <input> number of seconds - no return
 WAIT = 0x0B # wait for process #<input> to end - no return
 PID = 0x0C # get own PID (input ignored) - return PID of current process
 FORK = 0x0D # spawn new process with same dict and generator <input> - return PID of new process
+SEND = 0x0E # wait until socket at <input>[0] is available before writing <input>[1] to it
 # End system calls
 
 sleeping = {}
 waiting = {}
+sending = {}
 @clean_function
 def run_all():
     for i, process in enumerate(processes, 0):
@@ -145,6 +147,9 @@ def run_all():
                 del waiting[i]
             else:
                 continue
+	elif i in sending and process is not None:
+	    if get_path(sending[i][0]) == "":
+	        set_path(sending[i][0], sending[i][1])
         ret = None
         if process is not None:
             try:
@@ -165,6 +170,8 @@ def run_all():
                         process.main.send(i)
                     elif ret[1] == FORK: # fork current process with generator <input>
                         fork(process, ret[2])
+		    elif ret[1] == SEND: # Send <input>[1] to socket at <input>[0]
+		        sending[i] = ret[2]
             ret = None
 
 def fallback():
