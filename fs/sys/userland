@@ -187,13 +187,11 @@ def bootstrap():
 
     interrupt = None
 
-    while True:
-
-        while alive():
+    while alive():
             try:
                 run_all()
             except SystemInterrupt:
-                interrupt = SystemInterrupt
+                break
             except KeyboardInterrupt:
                 pass
             except:
@@ -201,19 +199,4 @@ def bootstrap():
                 printf("userland (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
                 if DEBUG:
                     raise
-
-        if interrupt is SystemInterrupt:
-            break
-        printf("userland (" + __name__ + "): Last process closed", file="stdout")
-        relaunch = input("Relaunch shell? (y/N) ")
-        if not relaunch:
-            break
-        elif relaunch.lower()[0] == 'y':
-            shellfile = open("/etc/shell").read()
-            shell = shellfile.split("\n")[0]
-            
-            spawn(shell, __dict__)
-        else:
-            break
-
     fallback()
