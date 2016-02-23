@@ -82,7 +82,7 @@ def spawn(name, dict = None, args = [], kwargs = {}, process = None):
     except TypeError:
         exc = file("/dev/error").read()
         error = str(exc[1]).replace('_main()', name)
-        printf("userland (" + __name__ + "):", exc[0].__name__ + ":", error + '. Relaunching without arguments', file="stderr")
+        #printf("userland (" + __name__ + "):", exc[0].__name__ + ":", error + '. Relaunching without arguments', file="stderr")
         processes[index].main = processes[index]._main()
 
     if index == -1:
