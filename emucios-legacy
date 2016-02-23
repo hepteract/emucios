@@ -199,6 +199,10 @@ class FileSystem(object):
         return os.listdir(self.path)
     keys = listdir
 
+    def items(self):
+        for name in self.keys():
+	    yield name, self[name]
+
     def __clean(self):
         self.path = self.path.replace('..', '.')
         if self.path.startswith('/'):
