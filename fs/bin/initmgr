@@ -1,0 +1,38 @@
+#!/usr/bin/env python2
+
+def switch_init(initlevel):
+	if initlevel != "socket" and\
+	    initlevel in get_path("/etc/initmgr").keys():
+		if "loud" in CIOS_MAGIC:
+			printf("[INIT]", initlevel)
+		
+		for name, args in\
+		    get_path("/etc/initmgr")[initlevel]["start"].items():
+			if "loud" in CIOS_MAGIC:
+				printf("[START]", name)
+			spawn(name, args = args.split(",")\
+		   	    if args != [""] else () )
+		for name in\
+		    get_path("/etc/initmgr")[initlevel]["stop"].keys():
+			if "loud" in CIOS_MAGIC:
+				printf("[STOP]", name)
+		    	killall(name)
+	else:
+		if "loud" in CIOS_MAGIC:
+			printf("[FAIL]", initlevel)
+
+def _main():
+	if "loud" in CIOS_MAGIC:
+		printf("[START] initmgr")
+	yield
+
+	switch_init("boot")
+	yield
+
+	while True:
+		if get_path("/etc/initmgr/socket") == "":
+			pass
+		else:
+			switch_init( get_path("/etc/initmgr/socket") )
+			set_path("/etc/initmgr/socket", "")
+		yield

@@ -109,6 +109,19 @@ def alive():
             return True
     return False
 
+def process_exists(name):
+    for process in processes:
+        if process is not None:
+	    if process.__name__ == name:
+	        return True
+    return False
+
+def killall(name):
+    for index, process in enumerate(processes, 0):
+        if process is not None:
+	    if process.__name__ == name:
+	        processes[index] = None
+
 SYSCALL = 0xDEAD
 # System calls - format: (SYSCALL, <type>, <input>)
 SLEEP = 0x0A # sleep for <input> number of seconds - no return
