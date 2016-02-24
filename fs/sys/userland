@@ -150,6 +150,8 @@ def run_all():
 	elif i in sending and process is not None:
 	    if get_path(sending[i][0]) == "":
 	        set_path(sending[i][0], sending[i][1])
+            else:
+                continue
         ret = None
         if process is not None:
             try:
