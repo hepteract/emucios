@@ -31,9 +31,5 @@ def _main():
 	yield
 
 	while True:
-		if get_path("/etc/initmgr/socket") == "":
-			pass
-		else:
-			switch_init( get_path("/etc/initmgr/socket") )
-			set_path("/etc/initmgr/socket", "")
-		yield
+		initlevel = yield SYSCALL, RECV, "/etc/initmgr/socket"
+		switch_init( initlevel )
