@@ -20,7 +20,10 @@ def _main():
                         processes[pid].CUR_USER = username
                         processes[pid].HOME = user[passwd.HOME]
                         processes[pid].CUR_DIR = user[passwd.HOME]
-                        yield SYSCALL, WAIT, pid
+
+                        yield SYSCALL, SEND, ("/etc/initmgr/socket", "login") # Switch to login initlevel
+			yield SYSCALL, WAIT, pid # Wait for user shell to exit before prompting for new login
+
                         username = None
                         break
                     except KeyboardInterrupt:
