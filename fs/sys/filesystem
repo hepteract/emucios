@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-class FIFOFileSystem(object):
+class SocketFileSystem(object):
 	def __init__(self):
 		self.data = {}
 	
@@ -14,6 +14,19 @@ class FIFOFileSystem(object):
 		return getattr(self.data, name)
 
 	def __getitem__(self, name):
+		return self.data[name].pop()
+	
+	def __setitem__(self, name, value):
+		if name in self.data.keys():
+			self.data[name].append(value)
+		else:
+			self.data[name] = [value]
+
+	def __delitem__(self, name):
+		del self.data[name]
+
+class FIFOFileSystem(SocketFileSystem):
+	def __getitem__(self, name):
 		return self.data[name].pop(0)
 	
 	def __setitem__(self, name, value):
@@ -22,14 +35,11 @@ class FIFOFileSystem(object):
 		else:
 			self.data[name] = [value]
 
-	def __delitem__(self, name):
-		del self.data[name]
-
 def bootstrap():
-	set_path("/proc/stdin", FIFOFileSystem())
-	set_path("/proc/stdout", FIFOFileSystem())
-	set_path("/proc/stderr", FIFOFileSystem())
-	set_path("/proc/socket", FIFOFileSystem())
+	set_path("/proc/stdin", SocketFileSystem())
+	set_path("/proc/stdout", SocketFileSystem())
+	set_path("/proc/stderr", SocketFileSystem())
+	set_path("/proc/socket", SocketFileSystem())
 
 def cleanup():
 	set_path("/proc", {})
