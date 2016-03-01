@@ -239,18 +239,33 @@ else:
                 raise
 
 KERNEL_MODULES = ("userland",)
+KERNEL_RELOAD = 0xCAFE
+
+KERNEL_CLEANUP = []
+KERNEL_BOOTSTRAP = []
 
 def __load_kernel_modules():
+    global KERNEL_CLEANUP, KERNEL_BOOTSTRAP
+
+    KERNEL_CLEANUP = []
+    KERNEL_BOOTSTRAP = []
+
     for module in KERNEL_MODULES:
     	do_import("".join(("/sys/", module)), local = True)
 
-KERNEL_RELOAD = 0xCAFE
-
 def bootstrap():
     __load_kernel_modules()
-    
+   
+    for func in KERNEL_BOOTSTRAP:
+    	func()
+
     ret = __dict__["bootstrap"]()
-    bootstrap()
+    
+    for func in KERNEL_CLEANUP:
+        func()
+
+    if ret == KERNEL_RELOAD:    
+    	bootstrap()
 
 bootstrap()
 #fallback()
