@@ -25,7 +25,7 @@ class SocketFileSystem(object):
 	
 	def __setitem__(self, name, value):
 		if name in self.data.keys():
-			self.data[name].insert( self.meta[name], value )
+			self.data[name].append( value )
 			return
 		try:
 			self.data._socket
