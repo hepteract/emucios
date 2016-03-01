@@ -25,7 +25,6 @@ class FIFOFileSystem(object):
 	def __delitem__(self, name):
 		del self.data[name]
 
-def filesystem_bootstrap():
+def bootstrap():
 	__proc__ = FIFOFileSystem()
 	__files__.magic["proc"] = (lambda: __proc__, lambda x: None)
-KERNEL_BOOTSTRAP.append(filesystem_bootstrap)

@@ -3,8 +3,6 @@
 import mythos
 import path
 
-namespace = do_import("/sys/namespace")
-
 class ProcessError(Exception): pass
 
 DEBUG = False

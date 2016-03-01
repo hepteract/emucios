@@ -238,31 +238,29 @@ else:
                 lib.printf("kernel (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
                 raise
 
-KERNEL_MODULES = ("userland", "filesystem")
+KERNEL_MODULES = ("filesystem", "userland")
 KERNEL_RELOAD = 0xCAFE
 
-KERNEL_CLEANUP = []
-KERNEL_BOOTSTRAP = []
+KERNEL_CODE = []
 
 def __load_kernel_modules():
-    global KERNEL_CLEANUP, KERNEL_BOOTSTRAP
+    global KERNEL_CODE
 
-    KERNEL_CLEANUP = []
-    KERNEL_BOOTSTRAP = []
+    KERNEL_CODE = []
 
     for module in KERNEL_MODULES:
-    	do_import("".join(("/sys/", module)), local = True)
+    	KERNEL_CODE.append( do_import("".join(("/sys/", module)), local = True) )
 
 def bootstrap():
     __load_kernel_modules()
    
-    for func in KERNEL_BOOTSTRAP:
-    	func()
-
-    ret = __dict__["bootstrap"]()
-    
-    for func in KERNEL_CLEANUP:
-        func()
+    for module in KERNEL_CODE:
+    	if "bootstrap" in module.__dict__.keys():
+	    ret = module.bootstrap()
+   
+    for module in KERNEL_CODE:
+        if "cleanup" in module.__dict__.keys():
+	    module.cleanup()
 
     if ret == KERNEL_RELOAD:    
     	bootstrap()
