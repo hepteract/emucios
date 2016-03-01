@@ -238,7 +238,7 @@ else:
                 lib.printf("kernel (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
                 raise
 
-KERNEL_MODULES = ("userland",)
+KERNEL_MODULES = ("userland", "filesystem")
 KERNEL_RELOAD = 0xCAFE
 
 KERNEL_CLEANUP = []

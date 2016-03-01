@@ -1,0 +1,31 @@
+#!/usr/bin/env python2
+
+class FIFOFileSystem(object):
+	def __init__(self):
+		self.data = {}
+	
+	def keys(self):
+		return self.data.keys()
+
+	def values(self):
+		return self.data.values()
+
+	def __getattr__(self, name):
+		return getattr(self.data, name)
+
+	def __getitem__(self, name):
+		return self.data[name].pop(0)
+	
+	def __setitem__(self, name, value):
+		if name in self.data.keys():
+			self.data[name].insert(0, value)
+		else:
+			self.data[name] = [value]
+
+	def __delitem__(self, name):
+		del self.data[name]
+
+def filesystem_bootstrap():
+	__proc__ = FIFOFileSystem()
+	__files__.magic["proc"] = (lambda: __proc__, lambda x: None)
+KERNEL_BOOTSTRAP.append(filesystem_bootstrap)
