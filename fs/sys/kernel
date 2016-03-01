@@ -238,10 +238,19 @@ else:
                 lib.printf("kernel (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
                 raise
 
+KERNEL_MODULES = ("userland",)
+
+def __load_kernel_modules():
+    for module in KERNEL_MODULES:
+    	do_import("".join(("/sys/", module)), local = True)
+
+KERNEL_RELOAD = 0xCAFE
+
 def bootstrap():
-    userland = do_import("/sys/userland", local = True)
-    #userland.fallback = interact
-    userland.bootstrap()
+    __load_kernel_modules()
+    
+    ret = __dict__["bootstrap"]()
+    bootstrap()
 
 bootstrap()
 #fallback()
