@@ -238,7 +238,7 @@ else:
                 lib.printf("kernel (" + __name__ + "):", exc[0].__name__ + ":", exc[1], file="stderr")
                 raise
 
-KERNEL_MODULES = ("filesystem", "userland")
+KERNEL_MODULES = get_path("/sys/modules").split()
 KERNEL_RELOAD = 0xCAFE
 
 KERNEL_CODE = []
