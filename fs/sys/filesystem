@@ -26,5 +26,10 @@ class FIFOFileSystem(object):
 		del self.data[name]
 
 def bootstrap():
-	__proc__ = FIFOFileSystem()
-	__files__.magic["proc"] = (lambda: __proc__, lambda x: None)
+	set_path("/proc/stdin", FIFOFileSystem())
+	set_path("/proc/stdout", FIFOFileSystem())
+	set_path("/proc/stderr", FIFOFileSystem())
+	set_path("/proc/socket", FIFOFileSystem())
+
+def cleanup():
+	set_path("/proc", {})
