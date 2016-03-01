@@ -21,7 +21,7 @@ def _main():
                         processes[pid].HOME = user[passwd.HOME]
                         processes[pid].CUR_DIR = user[passwd.HOME]
 
-                        yield SYSCALL, SEND, ("/etc/initmgr/socket", "login") # Switch to login initlevel
+                        set_path("/proc/socket/initmgr", "login") # Switch to login initlevel
 			yield SYSCALL, WAIT, pid # Wait for user shell to exit before prompting for new login
 
                         username = None

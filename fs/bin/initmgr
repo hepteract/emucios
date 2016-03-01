@@ -27,9 +27,13 @@ def _main():
 		printf("[START] initmgr")
 	yield
 
-	switch_init("boot")
-	yield
+	set_path("/proc/socket/initmgr", "boot")
 
 	while True:
-		initlevel = yield SYSCALL, RECV, "/etc/initmgr/socket"
+		yield
+
+		try:
+			initlevel = get_path("/proc/socket/initmgr")
+		except:
+			continue
 		switch_init( initlevel )

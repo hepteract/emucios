@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
 
 def _main(initlevel):
-	yield SYSCALL, SEND, ("/etc/initmgr/socket", initlevel)
+	set_path("/proc/socket/initmgr", initlevel)
+	yield
