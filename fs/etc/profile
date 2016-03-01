@@ -9,7 +9,6 @@ else:\
 	CUR_USER = "root"
 
 define logout exit()
-define quit exit()
 
 define time cat("/dev/clock")
 define error cat("/dev/error")
