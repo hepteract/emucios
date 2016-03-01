@@ -18,7 +18,7 @@ class SocketFileSystem(object):
 		return self.data.values()
 
 	def __getattr__(self, name):
-		return getattr(self.data, name)
+		return self.data.__getattr__(name)
 
 	def __getitem__(self, name):
 		return self.data[name].pop( self.meta[name] )
