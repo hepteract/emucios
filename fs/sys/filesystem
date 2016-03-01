@@ -1,8 +1,15 @@
 #!/usr/bin/env python2
 
+class Socket(object):
+	_socket = True
+	def __init__(self, data, meta = 0):
+		self.data = data
+		self.meta = meta
+
 class SocketFileSystem(object):
 	def __init__(self):
 		self.data = {}
+		self.meta = {}
 	
 	def keys(self):
 		return self.data.keys()
@@ -14,26 +21,20 @@ class SocketFileSystem(object):
 		return getattr(self.data, name)
 
 	def __getitem__(self, name):
-		return self.data[name].pop()
+		return self.data[name].pop( self.meta[name] )
 	
 	def __setitem__(self, name, value):
 		if name in self.data.keys():
-			self.data[name].append(value)
+			self.data[name].insert( self.meta[name], value )
+		elif "_socket" in value.__dict__.keys():
+			self.data[name] = value.data
+			self.meta[name] = value.meta
 		else:
 			self.data[name] = [value]
+			self.meta[name] = 0
 
 	def __delitem__(self, name):
 		del self.data[name]
-
-class FIFOFileSystem(SocketFileSystem):
-	def __getitem__(self, name):
-		return self.data[name].pop(0)
-	
-	def __setitem__(self, name, value):
-		if name in self.data.keys():
-			self.data[name].insert(0, value)
-		else:
-			self.data[name] = [value]
 
 def bootstrap():
 	set_path("/proc/stdin", SocketFileSystem())
