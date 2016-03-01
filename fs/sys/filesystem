@@ -26,13 +26,16 @@ class SocketFileSystem(object):
 	def __setitem__(self, name, value):
 		if name in self.data.keys():
 			self.data[name].insert( self.meta[name], value )
-		elif "_socket" in value.__dict__.keys():
-			self.data[name] = value.data
-			self.meta[name] = value.meta
-		else:
+			return
+		try:
+			self.data._socket
+		except:
 			self.data[name] = [value]
 			self.meta[name] = 0
-
+		else:
+			self.data[name] = value.data
+			self.meta[name] = value.meta
+		
 	def __delitem__(self, name):
 		del self.data[name]
 
