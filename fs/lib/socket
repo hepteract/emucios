@@ -31,7 +31,17 @@ class socket(object):
 			if blocking:
 				return self.recv()
 			else:
-				return ""
+				return None
+		else:
+			return ret
+
+	def recvall(self):
+		data = []
+		last = ""
+		while last is not None:
+			data.append(last)
+			last = self.recv()
+		return "\n".join(data)
 
 	def send(self, value):
 		set_path(self.path, value)
