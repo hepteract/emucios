@@ -39,6 +39,15 @@ class SocketFileSystem(object):
 	def __delitem__(self, name):
 		del self.data[name]
 
+	def peek(self, name):
+		return self.data[name][ self.meta[name] ]
+
+	def peekall(self, name):
+		return self.data[name]
+
+	def count(self, name):
+		return len( self.data[name] )
+
 def bootstrap():
 	set_path("/proc/stdin", SocketFileSystem())
 	set_path("/proc/stdout", SocketFileSystem())

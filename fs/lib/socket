@@ -48,3 +48,18 @@ class socket(object):
 
 	def close(self):
 		del_path(self.path)
+
+def recv(path, blocking = False):
+	return socket(path).recv(blocking)
+
+def send(path, value):
+	socket(path).send(value)
+
+def open(path):
+	socket(path).open()
+
+def recvall(path):
+	socket(path).recvall()
+
+def close(path):
+	socket(path).close()
