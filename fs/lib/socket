@@ -1,0 +1,40 @@
+#!/usr/bin/env python2
+
+"""Basic code for working with sockets"""
+
+class __socket(object):
+	_socket = True
+	def __init__(self, data = None, meta = 0):
+		if data is None:
+			self.data = []
+		elif type(data) is list:
+			self.data = data
+		else:
+			self.data = [data]
+
+		self.meta = meta
+
+class socket(object):
+	def __init__(self, path = None):
+		self.path = path
+
+	def open(self, data, meta = 0, path = None):
+		if path is not None:
+			self.path = path
+		set_path( path, __socket(data, meta) )
+			
+
+	def recv(self, blocking = False):
+		try:
+			ret = get_path(self.path)
+		except:
+			if blocking:
+				return self.recv()
+			else:
+				return ""
+
+	def send(self, value):
+		set_path(self.path, value)
+
+	def close(self):
+		del_path(self.path)
