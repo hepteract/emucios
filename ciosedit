@@ -1,0 +1,27 @@
+#!/usr/bin/env python2
+
+import subprocess
+import archive
+import shutil
+import sys
+import os
+
+fs = archive.open_archive( os.path.join(os.environ["emu"], "..", "fs.pya"), False )
+
+with open("/tmp/ciosedit", "w") as f:
+	f.write( fs.get_path( sys.argv[1] ) )
+
+subprocess.call([ os.environ["EDITOR"], "/tmp/ciosedit" ])
+
+with open("/tmp/ciosedit") as f:
+	fs.set_path( sys.argv[1], f.read() )
+
+os.unlink("/tmp/ciosedit")
+
+fs.close()
+
+shutil.rmtree( os.environ["emu"] )
+os.mkdir( os.environ["emu"] )
+os.chdir( os.environ["emu"] )
+
+subprocess.call([ "punzip", os.path.join(os.environ["emu"], "..", "fs.pya") ])

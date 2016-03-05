@@ -3,7 +3,7 @@
 #$ CIOS HEADER $#
 #$ NAME = PyOS $#
 #$ AUTHOR = Hepteract $#
-#$ VERSION = 2.1 $#
+#$ VERSION = 2.4 $#
 
 __modules__ = {}
 
