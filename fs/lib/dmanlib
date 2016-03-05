@@ -1,0 +1,27 @@
+#!/usr/bin/env python2
+
+"""Basic functions and classes supporting dman and allowing programs to render output into dman buffers."""
+
+import socket
+
+class VirtualTerminal(object):
+	count = 0
+	def __init__(self, name = None):
+		if name is None:
+			self.name = "".join(("tty", str(self.count)))
+		else:
+			self.name = name
+
+		self.stdin = "/".join(("/proc/stdin", self.name))
+		self.stdout = "/".join(("/proc/stdout", self.name))
+		self.stderr = "/".join(("/proc/stderr", self.name))
+
+
+		set_path(self.stdin, "")
+		set_path(self.stdout, "")
+		set_path(self.stderr, "")	
+
+	def attach(self):
+		terminal.clear()
+		out = "\n".join( get_path("/proc/stdin").peekall(self.name) )
+		printf(out)
