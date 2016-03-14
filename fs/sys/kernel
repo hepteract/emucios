@@ -251,9 +251,17 @@ def __load_kernel_modules():
     for module in KERNEL_MODULES:
     	KERNEL_CODE.append( do_import("".join(("/sys/", module)), local = True) )
 
+def local_bootstrap():
+    set_path("/proc/kernel", __dict__)
+
+def local_cleanup():
+    del_path("/proc/kernel")
+
 def bootstrap():
     __load_kernel_modules()
    
+    local_bootstrap()
+    
     for module in KERNEL_CODE:
     	if "bootstrap" in module.__dict__.keys():
 	    ret = module.bootstrap()
@@ -261,6 +269,8 @@ def bootstrap():
     for module in KERNEL_CODE:
         if "cleanup" in module.__dict__.keys():
 	    module.cleanup()
+
+    local_cleanup()
 
     if ret == KERNEL_RELOAD:    
     	bootstrap()
