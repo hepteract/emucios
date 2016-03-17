@@ -255,7 +255,7 @@ def local_bootstrap():
     set_path("/proc/kernel", __dict__)
 
 def local_cleanup():
-    del_path("/proc/kernel")
+    pass
 
 def bootstrap():
     __load_kernel_modules()
