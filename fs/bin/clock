@@ -1,6 +1,0 @@
-#!/usr/bin/python2.7
-
-def _main():
-    while True:
-        printf(open("/dev/clock").read())
-        yield
