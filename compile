@@ -13,5 +13,5 @@ obj = compile(code, sys.argv[1], "exec")
 
 raw = "\0" + marshal.dumps(obj)
 
-with open(sys.argv[2]) as f:
+with open(sys.argv[2], "wb") as f:
 	f.write(raw)
