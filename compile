@@ -3,7 +3,7 @@
 import marshal, sys
 
 if len(sys.argv) != 3:
-	print "Usage:", sys.argv[0], "<input> <output>"
+	print "Usage:", sys.argv[0].split("/")[-1], "<input> <output>"
         sys.exit(1)
 
 with open(sys.argv[1]) as f:
