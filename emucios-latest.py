@@ -83,10 +83,8 @@ else:
 def fetch_code(code):
     obj = marshal.loads(code)
 
-    if type(code) == types.CodeType:
-        return obj
-    else:
-        return -1
+    assert type(obj) == types.CodeType, "Object should be <code object>, is " + repr(type(obj))
+    return obj
 
 PATH_CHAR = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012356789./'
 file_devices = {'stdout': _stdout,
