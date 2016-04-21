@@ -1,0 +1,16 @@
+#!/usr/bin/python2.7
+
+import marshal, sys
+
+if len(sys.argv) != 3:
+	print "Usage:", sys.argv[0], "<input> <output>"
+
+with open(sys.argv[1]) as f:
+	code = f.read()
+
+obj = compile(code, sys.argv[1], "exec")
+
+raw = "\0" + marshal.dumps(obj)
+
+with open(sys.argv[2]) as f:
+	f.write(raw)
