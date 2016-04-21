@@ -7,6 +7,7 @@ from archive import open_archive, FileSystem
 DO_CLEAN_FUNCTIONS = False
 
 import collections
+import marshal
 import types
 import termios
 import shutil
@@ -78,6 +79,15 @@ if DO_CLEAN_FUNCTIONS:
     clean_class = force_clean_class
 else:
     clean_function = clean_class = cleanerrorgen = cleanerrorfunc = lambda x: x
+
+def fetch_code(code):
+    obj = marshal.loads(code)
+
+    if type(code) == types.CodeType:
+        return obj
+    else:
+        return -1
+
 PATH_CHAR = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012356789./'
 file_devices = {'stdout': _stdout,
  'stderr': _stderr,
