@@ -135,7 +135,7 @@ def log(*args):
 
         log.write('\n')
 
-
+builtins['fetch_code'] = fetch_code
 builtins['SystemInterrupt'] = SystemInterrupt
 builtins['clean_function'] = clean_function
 builtins['clean_class'] = clean_class
