@@ -162,12 +162,10 @@ scope['__dict__'] = scope
 header = re.compile("#\$ (\w+) = (\w+)")
 
 def find_code(fs, code = None):
-    code = code if code is not None else []
-    for key in fs.keys():
-        value = fs[key]
-        if hasattr(value, "keys"):
-            find_code(value, code)
-        elif isinstance(value, str):
+    code = code if code is not None else[]
+
+    def recurse( (key, value) ):
+        if isinstance(value, str):
             lines = value.split("\n")
 	    if len(lines) > 3:
             	if lines[2] == "#$ CIOS HEADER $#":
@@ -179,6 +177,9 @@ def find_code(fs, code = None):
 		            data[name.lower()] = define
 		    data["code"] = value
 		    code.append(data)
+
+    fs.walk(recurse)
+    
     return code
 
 def _main(f = None, data = None, arguments = None, handled = False):
