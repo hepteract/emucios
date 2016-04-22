@@ -90,6 +90,24 @@ class FileSystem(object):
         for key in self.shelf.keys():
             yield key, self.shelf[key]
 
+    def walk(self, func = None, item = None):
+        ret = None
+
+        if func is None:
+            ret = []
+            func = lambda item: ret.append(item)
+
+        if item is None:
+            item = self
+
+        for key, value in item.items():
+            if hasattr(value, 'keys'):
+                self.walk(func, value)
+            else:
+                func( (key, value) )
+
+        return ret
+
     def __getattr__(self, name):
         return getattr(self.shelf, name)
 
