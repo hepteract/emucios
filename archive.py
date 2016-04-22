@@ -40,7 +40,7 @@ class FileSystem(object):
             self.flush()
 
     def flush(self):
-        self.walk( self.clean, magic = True )
+        self.walk( self.clean, dirty = True )
 
         self.shelf.sync()
 
@@ -98,7 +98,7 @@ class FileSystem(object):
         for key in self.shelf.keys():
             yield key, self.shelf[key]
 
-    def walk(self, func = None, item = None, magic = False):
+    def walk(self, func = None, item = None, dirty = False):
         ret = None
 
         if func is None:
@@ -110,7 +110,7 @@ class FileSystem(object):
 
         for key, value in item.items():
             if type(value) is type:
-                if magic: # Allow some functions to run on directories
+                if dirty: # Allow some functions to run on directories
                     err = func( (key, value) )
 
                     if err == -1:
