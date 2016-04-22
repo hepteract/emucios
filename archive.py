@@ -98,7 +98,7 @@ class FileSystem(object):
         for key in self.shelf.keys():
             yield key, self.shelf[key]
 
-    def walk(self, func = None, item = None):
+    def walk(self, func = None, item = None, magic = False):
         ret = None
 
         if func is None:
@@ -109,7 +109,15 @@ class FileSystem(object):
             item = self
 
         for key, value in item.items():
-            if hasattr(value, 'keys') and type(value) is not type:
+            if type(value) is type:
+                if magic: # Allow some functions to run on directories
+                    err = func( (key, value) )
+
+                    if err == -1:
+                        del item[key]
+
+                break # If we are in a directory with a class, this whole directory is bad and needs to be ignored
+            if hasattr(value, 'keys'):
                 self.walk(func, value)
             else:
                 err = func( (key, value) )
