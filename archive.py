@@ -116,7 +116,7 @@ class FileSystem(object):
                     if err == -1:
                         del item[key]
 
-                break # If we are in a directory with a class, this whole directory is bad and needs to be ignored
+                break # If we are in a directory with a dirty value, this whole directory is bad and needs to be ignored
             if hasattr(value, 'keys'):
                 self.walk(func, value)
             else:
