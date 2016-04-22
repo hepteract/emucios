@@ -42,6 +42,12 @@ class FileSystem(object):
     def flush(self):
         self.shelf.sync()
 
+    def clean(self, (key, value) ):
+        try:
+            pickle.dumps(value)
+        except:
+            return -1
+
     def set_path(self, path, value, create_paths = False):
         if path.startswith("/"):
             path = path[1:]
@@ -104,7 +110,10 @@ class FileSystem(object):
             if hasattr(value, 'keys'):
                 self.walk(func, value)
             else:
-                func( (key, value) )
+                err = func( (key, value) )
+
+                if err == -1:
+                    del item[key]
 
         return ret
 
