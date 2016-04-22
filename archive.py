@@ -109,8 +109,8 @@ class FileSystem(object):
             item = self
 
         for key, value in item.items():
-            if type(value) is type:
-                if dirty: # Allow some functions to run on directories
+            if type(value) not in (dict, str): # Only dict and str are valid types
+                if dirty: # Allow some functions to run on dirty values
                     err = func( (key, value) )
 
                     if err == -1:
