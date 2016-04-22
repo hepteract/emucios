@@ -1,3 +1,4 @@
 #!/bin/sh
 
+mv fs.pya "backup/$(date +%s)"
 pzip fs
