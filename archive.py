@@ -109,7 +109,7 @@ class FileSystem(object):
             item = self
 
         for key, value in item.items():
-            if hasattr(value, 'keys'):
+            if hasattr(value, 'keys') and type(value) is not type:
                 self.walk(func, value)
             else:
                 err = func( (key, value) )
