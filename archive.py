@@ -40,6 +40,8 @@ class FileSystem(object):
             self.flush()
 
     def flush(self):
+        self.walk( self.clean )
+
         self.shelf.sync()
 
     def clean(self, (key, value) ):
