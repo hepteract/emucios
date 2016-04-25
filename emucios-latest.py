@@ -44,8 +44,9 @@ class CPU(Thread):
             exec self.code in self.scope
             self.code = ""
             time.sleep(0.01)
-
-    def isAlive(self):
+    
+    @property
+    def alive(self):
         return self.code != ""
 
 """def check_stdin(*args):
@@ -254,7 +255,7 @@ def _main(f = None, data = None, arguments = None, handled = False):
 
     cpus[0].code = code
 
-    while cpus[0].isAlive():
+    while cpus[0].alive:
         time.sleep(0.1)
 
 if __name__ == "__main__":
