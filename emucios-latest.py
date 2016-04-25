@@ -4,6 +4,9 @@ from __future__ import print_function
 
 from archive import open_archive, FileSystem
 
+from multiprocessing import Process
+from threading import Thread
+
 DO_CLEAN_FUNCTIONS = False
 
 import collections
@@ -21,6 +24,29 @@ import re
 _stdout = sys.stdout
 _stderr = sys.stderr
 _stdin = sys.stdin
+
+class CPU(Thread):
+    def __init__(self, scope, code = ""):
+        self.code = code
+        self.scope = scope
+
+        super(CPU, self).__init__()
+        
+        self.daemon = True
+
+    def run(self):
+        while True:
+            #if self.code != "":
+            if False:
+                _stderr.write(self.code + "\n")
+                _stderr.flush()
+
+            exec self.code in self.scope
+            self.code = ""
+            time.sleep(0.01)
+
+    def isAlive(self):
+        return self.code != ""
 
 """def check_stdin(*args):
     if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
@@ -219,16 +245,27 @@ def _main(f = None, data = None, arguments = None, handled = False):
     arguments[0] = "cios2"
     code = 'CIOS_MAGIC = ' + repr(arguments) + '\n' + code
     obj = compile(code, 'kernel', 'exec')
-    exec obj in scope
+    
+    cpus = [CPU(scope) for i in xrange(4)]
+    for cpu in cpus:
+        cpu.start()
 
-old_settings = termios.tcgetattr(sys.stdin)
-try:
-    tty.setcbreak(sys.stdin.fileno())
-    _main(handled = True)
-except:
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-    fs.flush()
-    raise
-else:
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+    scope["__cpu__"] = cpus
+
+    cpus[0].code = code
+
+    while cpus[0].isAlive():
+        time.sleep(0.1)
+
+if __name__ == "__main__":
+    old_settings = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        _main(handled = True)
+    except:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        fs.flush()
+        raise
+    else:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
     fs.flush()
