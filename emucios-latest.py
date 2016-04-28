@@ -54,6 +54,15 @@ class CPU(Thread):
     def alive(self):
         return self.code != ""
 
+class Memory(object):
+    def __init__(self):
+        with open("cios.mem") as f:
+            self.value = f.read()
+        
+    def flush(self):
+        with open("cios.mem", "w") as f:
+            f.write(self.value)
+
 """def check_stdin(*args):
     if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
         return sys.stdin.read(1)
@@ -166,6 +175,7 @@ def log(*args):
         log.write('\n')
 
 builtins['fetch_code'] = fetch_code
+builtins['__memory__'] = Memory()
 builtins['SystemInterrupt'] = SystemInterrupt
 builtins['clean_function'] = clean_function
 builtins['clean_class'] = clean_class
