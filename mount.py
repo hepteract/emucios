@@ -9,6 +9,8 @@ import logging
 import archive
 import time
 
+MODE = 0o644
+
 class FileSystem(LoggingMixIn, Operations):
     """FUSE wrapper for PYA format files"""
 
@@ -49,10 +51,10 @@ class FileSystem(LoggingMixIn, Operations):
         if path in self.data:
             pass
         elif hasattr( self.files.get_path( str(path) ), "keys" ):
-            self.data[path] = dict(st_mode=(S_IFDIR | 0o755), st_ctime=now,
+            self.data[path] = dict(st_mode=(S_IFDIR | MODE), st_ctime=now,
                     st_mtime=now, st_atime=now, st_nlink=2)
         else:
-            self.data[path] = dict(st_mode=33279, st_ctime=now,
+            self.data[path] = dict(st_mode=(S_IFREG | MODE), st_ctime=now,
                     st_mtime=now, st_atime=now,
                     st_size = len(self.files.get_path( str(path) )),
                     st_uid = 1000, st_gid = 1000)
