@@ -191,28 +191,7 @@ scope = {'__builtins__': builtins,
  '__name__': 'emucios'}
 scope['__dict__'] = scope
 
-header = re.compile("#\$ (\w+) = (\w+)")
-
-def find_code(fs, code = None):
-    code = code if code is not None else[]
-
-    def recurse( (key, value) ):
-        if isinstance(value, str):
-            lines = value.split("\n")
-	    if len(lines) > 3:
-            	if lines[2] == "#$ CIOS HEADER $#":
-		    data = {}
-		    for line in lines:
-			match = header.match(line)
-		        if match is not None: 
-		            name, define = match.group(1, 2)
-		            data[name.lower()] = define
-		    data["code"] = value
-		    code.append(data)
-
-    fs.walk(recurse)
-    
-    return code
+scope['__header__'] = re.compile("#\$ (\w+) = (\w+)")
 
 def _main(f = None, data = None, arguments = None, handled = False):
     if not handled:
@@ -232,21 +211,7 @@ def _main(f = None, data = None, arguments = None, handled = False):
     else:
         arguments.insert(0, 'illegal')
 
-    kernels = find_code(fs)
-
-    if len(kernels) > 1:
-
-        for num, kernel in enumerate(kernels, 0):
-            print(num, ":", kernel.get("name", "Kernel"), kernel.get("version", ""))
-
-        num = input("Kernel number: ")
-        code = kernels[num]["code"]
-
-        print(num)
-    elif len(kernels) == 1:
-        code = kernels[0]["code"]
-    else:
-        code = "raise OSError, \"No bootable medium detected.\""
+    code = open("cios2.rom").read()
 
     arguments[0] = "cios2"
     code = 'CIOS_MAGIC = ' + repr(arguments) + '\n' + code
