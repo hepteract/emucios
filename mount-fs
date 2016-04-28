@@ -1,0 +1,3 @@
+#!/usr/bin/python2
+
+import archive; archive.mount_archive(archive.open_archive("fs.pya"), "/tmp/mnt")

@@ -2,6 +2,10 @@
 
 from __future__ import print_function
 
+from fuse import FUSE
+
+import mount
+
 import cPickle as pickle
 import shelve
 import types
@@ -182,3 +186,7 @@ def open_archive(filename, archive = True):
         return Archive(shelf)
     else:
         return FileSystem(shelf)
+
+def mount_archive(archive, path):
+    #logging.basicConfig(level=logging.DEBUG)
+    fuse = FUSE(mount.FileSystem(archive), path, foreground = True)
