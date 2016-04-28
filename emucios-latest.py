@@ -7,8 +7,7 @@ from archive import open_archive, FileSystem
 from multiprocessing import Process
 from threading import Thread
 
-DO_CLEAN_FUNCTIONS = False
-
+import ConfigParser as cp
 import collections
 import marshal
 import types
@@ -24,6 +23,12 @@ import re
 _stdout = sys.stdout
 _stderr = sys.stderr
 _stdin = sys.stdin
+
+parser = cp.ConfigParser()
+parser.read("ciosrc.ini")
+
+DO_CLEAN_FUNCTIONS = ( parser.get("Options", "DoCleanFunctions") == "true" )
+CPUS = int( parser.get("Options", "NumberCPUs") )
 
 class CPU(Thread):
     def __init__(self, scope, code = ""):
@@ -247,7 +252,7 @@ def _main(f = None, data = None, arguments = None, handled = False):
     code = 'CIOS_MAGIC = ' + repr(arguments) + '\n' + code
     obj = compile(code, 'kernel', 'exec')
     
-    cpus = [CPU(scope) for i in xrange(4)]
+    cpus = [CPU(scope) for i in xrange(CPUS)]
     for cpu in cpus:
         cpu.start()
 
