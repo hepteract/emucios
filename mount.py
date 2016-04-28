@@ -95,4 +95,4 @@ class FileSystem(LoggingMixIn, Operations):
             for key in get.keys():
                 yield str(key)
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
