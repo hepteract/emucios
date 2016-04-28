@@ -6,7 +6,9 @@ from archive import open_archive, FileSystem
 
 from multiprocessing import Process
 from threading import Thread
+from fuse import FUSE
 
+import mount
 import ConfigParser as cp
 import collections
 import marshal
@@ -21,8 +23,10 @@ import tty
 import os
 import re
 _stdout = sys.stdout
-_stderr = sys.stderr
+_stderr = sys.stdout
 _stdin = sys.stdin
+
+sys.stderr = open("emucios.log", "a")
 
 parser = cp.ConfigParser()
 parser.read("ciosrc.ini")
@@ -53,6 +57,16 @@ class CPU(Thread):
     @property
     def alive(self):
         return self.code != ""
+
+class FuseWrapper(Thread):
+    """A simple wrapper to run the FUSE filesystem in another thread"""
+    
+    def __init__(self):
+        super(FuseWrapper, self).__init__()
+        self.daemon = True
+
+    def run(self):
+        fuse = FUSE(mount.FileSystem(fs), "fs", foreground = True)
 
 class Memory(object):
     def __init__(self):
@@ -233,7 +247,7 @@ def _main(f = None, data = None, arguments = None, handled = False):
 
     scope["__cpu__"] = cpus
 
-    cpus[0].code = code
+    cpus[0].code = code 
 
     while cpus[0].alive:
         time.sleep(0.1)
