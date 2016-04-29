@@ -32,6 +32,9 @@ def input(prompt):
     __files__["stdout"] = prompt
     return int(__files__["stdin"])
 
+def clear_screen():
+    __files__["stdout"] = "\033[2J\033[0;0H"
+
 kernels = find_code(__files__)
 
 if kernels.__len__() > 1:
@@ -58,6 +61,8 @@ while True:
     try:
         exec code in __dict__
     except RestartNow:
+        clear_screen()
+
         __dict__ = {}
         __dict__.update(__backup__)
         continue
