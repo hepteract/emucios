@@ -20,9 +20,9 @@ class FileSystem(LoggingMixIn, Operations):
         self.fd = 0
     
     def truncate(self, path, length, fh = None):
-        self.files.set_path(path,
-                self.files.get_path(path)[:length]
-                )
+        #self.files.set_path(path,
+        #        self.files.get_path(path)[:length]
+        #        )
 
         self.data[path]["st_ctime"] = self.data[path]["st_mtime"] = time.time()
         
@@ -64,7 +64,12 @@ class FileSystem(LoggingMixIn, Operations):
         return self.data[path]
 
     def read(self, path, size, offset, fh):
-        return str(self.files.get_path(path)) [offset:offset + size]
+        try:
+            value = self.files.get_path(path)
+        except:
+            return ENOENT
+        else:
+            return str(value) [offset:offset + size]
 
     def readlink(self, path):
         return self.files.get_path(path)
@@ -86,8 +91,14 @@ class FileSystem(LoggingMixIn, Operations):
         return len(data)
 
     def readdir(self, path, fh):
-        get = self.files.get_path( str(path) )
+        try:
+            get = self.files.get_path( str(path) )
+        except:
+            return ENOENT
+        else:
+            return self._readdir(get)
 
+    def _readdir(self, get):
         yield '.'
         yield '..'
 

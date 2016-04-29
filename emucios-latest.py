@@ -66,7 +66,7 @@ class FuseWrapper(Thread):
         self.daemon = True
 
     def run(self):
-        fuse = FUSE(mount.FileSystem(fs), "fs", foreground = True)
+        fuse = FUSE(mount.FileSystem(fs), "mnt", foreground = True)
 
 class Memory(object):
     def __init__(self):
