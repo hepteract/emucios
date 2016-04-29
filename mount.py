@@ -64,7 +64,7 @@ class FileSystem(LoggingMixIn, Operations):
         return self.data[path]
 
     def read(self, path, size, offset, fh):
-        return self.files.get_path(path) [offset:offset + size]
+        return str(self.files.get_path(path)) [offset:offset + size]
 
     def readlink(self, path):
         return self.files.get_path(path)

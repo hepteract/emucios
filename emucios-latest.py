@@ -230,6 +230,9 @@ def _main(f = None, data = None, arguments = None, handled = False):
         else:
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
             fs.flush()
+    
+    FuseWrapper().start()
+    
     if arguments is None:
         arguments = sys.argv
     else:
