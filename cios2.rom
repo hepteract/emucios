@@ -47,7 +47,7 @@ elif kernels.__len__() == 1:
 else:
     code = "raise OSError, \"No bootable medium detected.\""
 
-class RestartNow(Exception): pass
+class RestartNow(SystemInterrupt): pass
 
 del header
 
@@ -60,3 +60,5 @@ while True:
     except RestartNow:
         __dict__ = {}
         __dict__.update(__backup__)
+        continue
+    break
