@@ -66,4 +66,7 @@ while True:
         __dict__ = {}
         __dict__.update(__backup__)
         continue
-    break
+    except:
+        raise
+    else:
+        break
