@@ -19,32 +19,32 @@ def find_code(fs, code = None):
 		    data["code"] = value
                     code.append(data)
         else:
-            print("Ignored:", key, repr(value.__class__))
+            __print("Ignored:", key, repr(value.__class__))
     fs.walk(recurse)
     
     return code
 
-def print(*args):
+def __print(*args):
     __files__["stdout"] = " ".join(args)
     __files__["stdout"] = "\n"
 
-def input(prompt):
+def __input(prompt):
     __files__["stdout"] = prompt
     return int(__files__["stdin"])
 
-def clear_screen():
+def __clear_screen():
     __files__["stdout"] = "\033[2J\033[0;0H"
 
 kernels = find_code(__files__)
 
 if kernels.__len__() > 1:
     for num, kernel in enumerate(kernels, 0):
-	print(num, ":", kernel.get("name", "Kernel"), kernel.get("version", ""))
+	__print(num, ":", kernel.get("name", "Kernel"), kernel.get("version", ""))
 
-	num = input("Kernel number: ")
+	num = __input("Kernel number: ")
 	code = kernels[num]["code"]
 
-	print(num)
+	__print(num)
 elif kernels.__len__() == 1:
     code = kernels[0]["code"]
 else:
@@ -61,7 +61,7 @@ while True:
     try:
         exec code in __dict__
     except RestartNow:
-        clear_screen()
+        __clear_screen()
 
         __dict__ = {}
         __dict__.update(__backup__)
