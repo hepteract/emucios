@@ -57,6 +57,9 @@ del header
 __backup__ = {}
 __backup__.update(__dict__)
 
+__raw = lambda *args: __files__.shelf
+__files__.magic["raw"] = (__raw, __raw)
+
 while True:
     try:
         exec code in __dict__
