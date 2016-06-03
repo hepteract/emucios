@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm fs
+ln -sfv devices/$1 fs
