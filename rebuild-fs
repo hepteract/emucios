@@ -1,4 +1,4 @@
 #!/bin/sh
 
-mv fs.pya "backup/$(date +%s)"
+mv fs.pya "backup/$(ls -l fs | awk '{print $11}' | xargs basename).$(date +%s)"
 pzip fs
