@@ -8,6 +8,7 @@ from multiprocessing import Process
 from threading import Thread
 from fuse import FUSE
 
+import socket
 import mount
 import ConfigParser as cp
 import collections
@@ -33,6 +34,56 @@ parser.read("ciosrc.ini")
 
 DO_CLEAN_FUNCTIONS = ( parser.get("Options", "DoCleanFunctions") == "true" )
 CPUS = int( parser.get("Options", "NumberCPUs") )
+
+serial_port = socket.socket(socket.AF_UNIX)
+
+try:
+    os.unlink("tty")
+except:
+    pass
+
+serial_port.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+serial_port.bind("tty")
+serial_port.listen(5)
+
+consoles = []
+
+def handle_sockets():
+    valid, _, __ = select.select( (serial_port,), (), () )
+    for sock in valid:
+        conn, addr = sock.accept()
+        consoles.append( conn )
+
+class ConsoleHandler(object):
+    path = None
+
+    def __getitem__(self, index):
+        index = int(index) - 1
+        
+        if index == -1:
+            return self.get_std()
+        else:
+            return consoles[index].recv(1)
+
+    def __setitem__(self, index, value):
+        index = int(index) - 1
+
+        if index == -1:
+            self.set_std(value)
+        else:
+            consoles[index].send(value)
+
+    def get_std(self):
+        return sys.stdin.read(1)
+
+    def set_std(self, value):
+        sys.stdout.write(value)
+        sys.stdout.flush()
+
+    def keys(self):
+        return range( 1 + len(consoles) )
+
+console_handler = ConsoleHandler()
 
 class CPU(Thread):
     def __init__(self, scope, code = ""):
@@ -164,6 +215,7 @@ def bind_file(f):
             f.flush()
     return file_wrapper
 
+
 fs = open_archive("./fs.pya", False)
 fs.magic.update({
     'stderr' : (superpass, bind_file(_stderr)),
@@ -173,7 +225,8 @@ fs.magic.update({
     'stdin'  : (bind_file(_stdin), superpass),
     'error'  : (sys.exc_info, superpass),
     'random' : (lambda : os.urandom(1), superpass),
-    'sleep'  : (lambda: time.sleep(1), time.sleep)
+    'sleep'  : (lambda: time.sleep(1), time.sleep),
+    'console' : (lambda: console_handler, superpass)
     })
 
 class SystemInterrupt(Exception):
@@ -253,7 +306,8 @@ def _main(f = None, data = None, arguments = None, handled = False):
     cpus[0].code = code 
 
     while cpus[0].alive:
-        time.sleep(0.1)
+        handle_sockets()
+        time.sleep(0.01)
 
 if __name__ == "__main__":
     old_settings = termios.tcgetattr(sys.stdin)
