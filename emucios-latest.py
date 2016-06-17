@@ -257,7 +257,7 @@ if len(sys.argv) > 1:
     builtins['__debug__'] = print
 else:
     builtins['__debug__'] = lambda *args: None
-keep = ('ValueError', 'KeyboardInterrupt', 'int', 'dict', 'list', 'True', 'False', 'None', 'tuple', 'object', 'StopIteration', 'SyntaxError', 'Exception', 'compile', 'OSError', 'IOError', 'chr', 'ord', 'TypeError', 'repr', 'NameError', 'intern', 'ImportError', 'bool', 'float')
+keep = ('ValueError', 'KeyboardInterrupt', 'int', 'dict', 'list', 'True', 'False', 'None', 'tuple', 'object', 'StopIteration', 'SyntaxError', 'Exception', 'compile', 'OSError', 'IOError', 'chr', 'ord', 'TypeError', 'repr', 'NameError', 'intern', 'ImportError', 'bool', 'float', 'eval')
 for builtin in keep:
     try:
         builtins[builtin] = __builtins__.__dict__[builtin]
