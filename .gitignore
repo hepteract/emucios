@@ -1,0 +1,4 @@
+*.pyc
+*.pya
+emucios.log
+cios.mem
