@@ -1,6 +1,3 @@
 [submodule "fs"]
 	path = devices/pyos
 	url = git@github.com:hepteract/pyos.git
-[submodule "devices/doors"]
-	path = devices/doors
-	url = git@github.com:hepteract/doors.git
